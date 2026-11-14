@@ -4,6 +4,7 @@ import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
 import { LANG, langUrl, t } from './i18n'
 import { VIDEO } from './ui'
+import { LOGO } from './art'
 
 document.documentElement.lang = LANG
 if (VIDEO) document.documentElement.classList.add('video')
@@ -14,7 +15,7 @@ const POLL_MS = Number(import.meta.env.VITE_POLL_MS ?? 10_000)
 const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
   <header class="topbar">
-    <a href="#/" class="brand"><img src="${import.meta.env.BASE_URL}favicon.svg" alt=""> Hanan Qocha <small>Qocha Twin</small></a>
+    <a href="#/" class="brand">${LOGO}<span class="brand-name">Hanan Qocha</span><small>Qocha Twin</small></a>
     <nav class="top-right">
       <span class="src" title="${t.dataSource}"><span class="src-label">${t.data}: ${DATA_SOURCE} ·</span>
         <a href="${sourceUrl(DATA_SOURCE === 'demo' ? DEFAULT_SOURCE : 'demo')}">${DATA_SOURCE === 'demo' ? t.exitDemo : t.seeDemo}</a></span>

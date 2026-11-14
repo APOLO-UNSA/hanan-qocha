@@ -195,9 +195,9 @@ export function cochaState(d: Dataset, site: Site): CochaState {
 }
 
 export const ESTADO_INFO = {
-  apta: { label: t.apta, color: '#2e9d5b', msg: t.aptaMsg },
-  condicional: { label: t.condicional, color: '#e0a526', msg: t.condicionalMsg },
-  'no-apta': { label: t.noApta, color: '#c8473b', msg: t.noAptaMsg },
+  apta: { label: t.apta, color: '#3b7a4c', msg: t.aptaMsg },
+  condicional: { label: t.condicional, color: '#d9a23f', msg: t.condicionalMsg },
+  'no-apta': { label: t.noApta, color: '#c4552d', msg: t.noAptaMsg },
 } as const
 
 // ---------- Acción recomendada ----------

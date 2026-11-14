@@ -5,6 +5,7 @@ import type { Dataset } from '../data'
 import { cochaState, ESTADO_INFO } from '../model'
 import { esc, pct, VIDEO } from '../ui'
 import { IAC, t } from '../i18n'
+import { miniRing } from '../art'
 
 let map: L.Map | undefined
 
@@ -16,6 +17,7 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     <section class="map-screen">
       <div id="map" class="map"></div>
       <aside class="panel">
+        <p class="kicker">${t.mapKicker}</p>
         <h2>${t.candidates}</h2>
         <p class="muted">${t.mapIntro}</p>
         <div class="legend">
@@ -27,10 +29,9 @@ export function renderMap(root: HTMLElement, d: Dataset) {
             .sort((a, b) => b.iac - a.iac)
             .map(
               (s) => `
-            <li><a href="#/cocha/${encodeURIComponent(s.site.cocha_id)}">
-              <span class="dot" style="background:${ESTADO_INFO[s.estado].color}"></span>
-              <span class="name">${esc(s.site.nombre)}<small>${esc(s.site.cocha_id)} · ${s.site.altitud_m} m</small></span>
-              <span class="iac">${pct(s.iac)}</span>
+            <li><a href="#/cocha/${encodeURIComponent(s.site.cocha_id)}" title="${IAC} ${pct(s.iac)} · ${ESTADO_INFO[s.estado].label}">
+              ${miniRing(s.iac, ESTADO_INFO[s.estado].color)}
+              <span class="name">${esc(s.site.nombre)}<small>${esc(s.site.cocha_id)} · ${s.site.altitud_m} m · ${ESTADO_INFO[s.estado].label}</small></span>
             </a></li>`,
             )
             .join('')}
@@ -60,10 +61,10 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     bounds.push([lat, lon])
     L.circleMarker([lat, lon], {
       radius: VIDEO ? 14 : 11,
-      color: '#fff',
-      weight: 2,
+      color: '#fbf7ee',
+      weight: 3,
       fillColor: ESTADO_INFO[s.estado].color,
-      fillOpacity: 0.9,
+      fillOpacity: 0.95,
     })
       .addTo(map)
       .bindTooltip(`${esc(s.site.nombre)} · ${IAC} ${pct(s.iac)}`)

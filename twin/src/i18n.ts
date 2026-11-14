@@ -35,6 +35,7 @@ const es = {
   loading: 'Cargando datos…',
 
   // mapa
+  mapKicker: 'Salinas y Aguada Blanca · Arequipa',
   candidates: 'Cochas candidatas',
   mapIntro: 'Bofedales de Salinas y Aguada Blanca, coloreados según el Índice de Aptitud Cushuro (IAC).',
   noSites: 'Aún no hay cochas en sites.json.',
@@ -52,6 +53,11 @@ const es = {
   // ficha
   notFound: (id: string) => `No se encontró la cocha <b>${id}</b>. <a href="#/">Volver al mapa</a>`,
   backToMap: '← Mapa',
+  pondKicker: 'Cocha candidata',
+  optimal: 'óptimo',
+  tolerable: 'tolerable',
+  outOfRange: 'fuera de rango',
+  suitability: 'aptitud',
   masl: 'm s.n.m.',
   route: 'Ruta de cultivo',
   stageSown: 'Sembrada',
@@ -97,6 +103,7 @@ const es = {
 
   // gráfico
   harvestPoint: 'punto de cosecha',
+  today: 'hoy',
   dayUnit: 'd',
   legendScenario: 'Escenario (sliders)',
   legendBase: 'Proyección con la lectura real',
@@ -136,6 +143,7 @@ const en: Dict = {
   offline: 'Offline · showing last saved data',
   loading: 'Loading data…',
 
+  mapKicker: 'Salinas y Aguada Blanca · Arequipa',
   candidates: 'Candidate ponds',
   mapIntro: 'Wetlands of Salinas y Aguada Blanca, colored by the Cushuro Suitability Index (CSI).',
   noSites: 'No ponds in sites.json yet.',
@@ -151,6 +159,11 @@ const en: Dict = {
 
   notFound: (id) => `Pond <b>${id}</b> not found. <a href="#/">Back to map</a>`,
   backToMap: '← Map',
+  pondKicker: 'Candidate pond',
+  optimal: 'optimal',
+  tolerable: 'tolerable',
+  outOfRange: 'out of range',
+  suitability: 'suitability',
   masl: 'm a.s.l.',
   route: 'Growing path',
   stageSown: 'Seeded',
@@ -194,6 +207,7 @@ const en: Dict = {
   history: (h, n) => `Last ${h} h · ${n} readings`,
 
   harvestPoint: 'harvest point',
+  today: 'today',
   dayUnit: 'd',
   legendScenario: 'Scenario (sliders)',
   legendBase: 'Projection from real reading',

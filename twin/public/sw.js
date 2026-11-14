@@ -4,7 +4,7 @@
 //   - Datos (*.json):    red primero; sin red, los últimos datos guardados.
 //   - JS/CSS/imágenes:   caché primero (los archivos de Vite llevan hash, no cambian).
 //   - Mapa (Esri):       caché primero, con un máximo de teselas guardadas.
-const VERSION = 'v1'
+const VERSION = 'v2'
 const APP = `qt-app-${VERSION}`
 const DATA = `qt-data-${VERSION}`
 const TILES = `qt-tiles-${VERSION}`

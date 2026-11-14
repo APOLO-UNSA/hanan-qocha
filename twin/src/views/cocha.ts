@@ -15,6 +15,7 @@ import {
 } from '../model'
 import { esc, fmtTime, pct } from '../ui'
 import { IAC, t } from '../i18n'
+import { gauge, iacRing, ICONS, sliderBand } from '../art'
 
 const ETAPAS = [
   { t: '', s: '' }, // la primera etapa muestra la aptitud real (ver renderState)
@@ -52,54 +53,53 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   root.innerHTML = `
     <section class="page">
       <a class="back" href="#/">${t.backToMap}</a>
-      <header class="cocha-head">
+      <header class="hero">
         <div>
+          <p class="kicker">${t.pondKicker} · ${esc(site.cocha_id)}</p>
           <h2>${esc(site.nombre)}</h2>
-          <p class="muted">${esc(site.cocha_id)} · ${site.altitud_m} ${t.masl} · ${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</p>
+          <p class="meta"><span><b>▲</b> ${site.altitud_m} ${t.masl}</span><span>${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</span></p>
+          <p id="estado-msg" class="estado-pill"></p>
         </div>
-        <div id="iac-badge" class="iac-badge"></div>
+        <div class="ring-wrap" id="iac-ring"></div>
       </header>
-      <p id="estado-msg" class="estado-msg"></p>
 
-      <h3>${t.route}</h3>
-      <ol id="ruta" class="ruta"></ol>
+      <div class="sec"><span class="num">01</span><h3>${t.route}</h3></div>
+      <ol id="ruta" class="trail"></ol>
 
-      <div id="indices" class="indices"></div>
-
-      <h3>${t.twin}</h3>
+      <div class="sec"><span class="num">02</span><h3>${t.twin}</h3></div>
       <div class="twin-grid">
-        <div class="card">
+        <div class="card k-sensor">
           <h4>${t.lastReading} ${live ? `<span class="live" title="${t.liveTitle(pollSeconds)}">${t.live}</span>` : ''}</h4>
           <div id="sensor"></div>
         </div>
-        <div class="card">
-          <h4>${t.vision} <span class="muted small">${t.coloniesMarked}</span></h4>
+        <div class="card k-vision">
+          <h4>${t.vision} <span class="tag">${t.coloniesMarked}</span></h4>
           <div id="vision"></div>
         </div>
-        <div class="card wide">
-          <h4>${t.curve} <span class="muted small">${t.curveSub}</span></h4>
+        <div class="card wide k-curva">
+          <h4>${t.curve} <span class="tag">${t.curveSub}</span></h4>
           <div id="chart"></div>
         </div>
-        <div class="card">
+        <div class="card k-whatif">
           <h4>${t.whatIf}</h4>
           <form id="sliders">
             ${SLIDERS.map(
               (sl) => `
               <label>
-                <span>${sl.label}<output id="o-${sl.key}"></output></span>
-                <input type="range" name="${sl.key}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${cond[sl.key]}">
-                <i class="fbar"><i id="f-${sl.key}"></i></i>
+                <span class="s-head"><span>${sl.label}</span><span><output id="o-${sl.key}"></output><span class="apt" id="f-${sl.key}"></span></span></span>
+                <input type="range" name="${sl.key}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${cond[sl.key]}" style="${sliderBand(RANGES[sl.key], sl.min, sl.max)}">
               </label>`,
             ).join('')}
+            <p class="band-key"><span><i style="background:var(--bofedal)"></i>${t.optimal}</span><span><i style="background:var(--ichu)"></i>${t.tolerable}</span><span><i style="background:var(--arcilla)"></i>${t.outOfRange}</span></p>
             <button type="reset" class="btn-sec">${t.resetSliders}</button>
           </form>
         </div>
-        <div class="card">
+        <div class="card k-accion">
           <h4>${t.action}</h4>
           <ul id="actions" class="actions"></ul>
         </div>
       </div>
-      <p id="supuestos" class="muted small supuestos"></p>
+      <p id="supuestos" class="supuestos muted"></p>
     </section>`
 
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector<T>(sel)!
@@ -108,22 +108,25 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   /** Partes que dependen del estado de la cocha (IAC, sensor, ruta). */
   const renderState = (prevSensor?: SensorReading) => {
     const info = ESTADO_INFO[st.estado]
-    const badge = $('#iac-badge')
-    badge.style.setProperty('--c', info.color)
-    badge.innerHTML = `<strong>${pct(st.iac)}</strong><span>${IAC} · ${info.label}</span>`
+    // Anillo del IAC: cada pilar con su color y su peso.
+    const PILARES = [
+      { valor: site.indice_satelital, peso: 0.4, color: '#8f9be0', label: t.idxSatellite },
+      { valor: st.indice_in_situ, peso: 0.4, color: '#4fc1bf', label: t.idxInSitu },
+      { valor: st.indice_vision, peso: 0.2, color: '#c79bd4', label: t.idxVision },
+    ]
+    $('#iac-ring').innerHTML =
+      iacRing(PILARES, st.iac, info.label, info.color, IAC) +
+      `<div class="ring-legend">${PILARES.map((p) => `<span><i style="background:${p.color}"></i>${p.label} <b>${pct(p.valor)}</b></span>`).join('')}</div>`
     const msg = $('#estado-msg')
-    msg.style.borderColor = info.color
-    msg.textContent = info.msg
-    // La primera etapa muestra la aptitud real según el IAC (Apta / Condicional / No apta).
+    msg.style.setProperty('--c', info.color)
+    msg.innerHTML = `<i>${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</i>${esc(info.msg)}`
+    // Sendero: la primera estación muestra la aptitud real según el IAC (Apta / Condicional / No apta).
     $('#ruta').innerHTML = ETAPAS.map((e, i) => {
       const cls = i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''
-      if (i > 0) return `<li class="${cls}"><b>${e.t}</b><small>${e.s}</small></li>`
-      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
+      const node = i < st.etapa ? '✓' : String(i + 1)
+      if (i > 0) return `<li class="${cls}"><span class="node">${node}</span><b>${e.t}</b><small>${e.s}</small></li>`
+      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
     }).join('')
-    $('#indices').innerHTML = `
-      <div><span>${t.idxSatellite}</span><b>${pct(site.indice_satelital)}</b><small>×0,4</small></div>
-      <div><span>${t.idxInSitu}</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>
-      <div><span>${t.idxVision}</span><b>${pct(st.indice_vision)}</b><small>×0,2</small></div>`
     $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id))
     renderVision()
     $('#supuestos').innerHTML = t.assumptions({
@@ -139,7 +142,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   const renderVision = () => {
     const el = $('#vision')
     if (!vis.length) {
-      el.innerHTML = `<p class="muted">${t.noPhotos}</p>`
+      el.innerHTML = `<div class="empty">${CAMARA}<span>${t.noPhotos}</span></div>`
       return
     }
     const i = fotoSel >= 0 && fotoSel < vis.length ? fotoSel : vis.length - 1
@@ -147,7 +150,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     el.innerHTML = `
       <figure class="foto">
         <img src="${esc(photoUrl(v.foto))}" alt="${t.photoAlt}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:${esc(JSON.stringify(t.photoMissing))}}))">
-        <figcaption>${t.coverage} ${v.cobertura_pct} % · ${v.biomasa_kg} kg <span class="muted small">· ${fmtTime(v.timestamp)}</span></figcaption>
+        <figcaption><b>${v.biomasa_kg} kg · ${t.coverage.toLowerCase()} ${v.cobertura_pct} %</b><span>${fmtTime(v.timestamp)}</span></figcaption>
       </figure>
       ${
         vis.length > 1
@@ -172,9 +175,9 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     const f = factors(cond)
     for (const sl of SLIDERS) {
       $(`#o-${sl.key}`).textContent = `${cond[sl.key]} ${sl.unit}`
-      const bar = $(`#f-${sl.key}`)
-      bar.style.width = `${f[sl.key] * 100}%`
-      bar.style.background = f[sl.key] >= 0.7 ? '#2e9d5b' : f[sl.key] >= 0.4 ? '#e0a526' : '#c8473b'
+      const apt = $(`#f-${sl.key}`)
+      apt.textContent = `${t.suitability} ${Math.round(f[sl.key] * 100)}%`
+      apt.style.background = f[sl.key] >= 0.7 ? 'var(--bofedal)' : f[sl.key] >= 0.4 ? 'var(--ichu)' : 'var(--arcilla)'
     }
     const alpha = st.calib?.alpha ?? 1
     const chartEl = $('#chart')
@@ -182,7 +185,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha, {
       ph: st.sensor?.ph,
     })
-      .map((a) => `<li class="${a.nivel}"><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</li>`)
+      .map((a) => `<li class="${a.nivel}"><span class="ic-box">${ICONS[a.codigo] ?? ICONS.ALERTA}</span><div><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</div></li>`)
       .join('')
   }
 
@@ -235,21 +238,23 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   }
 }
 
+const CAMARA = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'
+const ONDA = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 12h3l2-5 3 10 3-7 2 2h5"/></svg>'
+
+/** Lectura del sensor como medidores con su zona óptima (el pH no tiene rango en el modelo: se muestra sin zona). */
 function sensorHtml(s?: SensorReading, prev?: SensorReading): string {
-  if (!s) return `<p class="muted">${t.noSensor}</p>`
+  if (!s) return `<div class="empty">${ONDA}<span>${t.noSensor}</span></div>`
   const isNew = prev != null && prev.timestamp !== s.timestamp
-  const row = (label: string, v: number | undefined, unit: string, pv: number | undefined) => {
-    const delta = isNew && v != null && pv != null && v !== pv ? (v > pv ? ' <i class="up">▲</i>' : ' <i class="down">▼</i>') : ''
-    return `<dt>${label}</dt><dd${isNew ? ' class="flash"' : ''}>${v ?? '—'}${v != null && unit ? ` ${unit}` : ''}${delta}</dd>`
-  }
+  const delta = (v: number | undefined, pv: number | undefined) =>
+    isNew && v != null && pv != null && v !== pv ? (v > pv ? ' <i class="up">▲</i>' : ' <i class="down">▼</i>') : ''
   const ageMin = (Date.now() - Date.parse(s.timestamp)) / 60000
   const age = ageMin < 1 ? t.secondsAgo : ageMin < 60 ? t.minAgo(Math.round(ageMin)) : fmtTime(s.timestamp)
-  return `<dl class="readings">
-      ${row('TDS', s.tds_ppm, 'ppm', prev?.tds_ppm)}
-      ${row(t.waterTemp, s.temp_agua_c, '°C', prev?.temp_agua_c)}
-      ${row('pH', s.ph, '', prev?.ph)}
-      ${row('UV', s.uv_index, '', prev?.uv_index)}
-    </dl><p class="muted small" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ' · <span class="stale">${t.stale}</span>' : ''}</p>`
+  return `<div class="gauges">
+      ${gauge('TDS', s.tds_ppm, 'ppm', RANGES.tds_ppm, 400, isNew, delta(s.tds_ppm, prev?.tds_ppm))}
+      ${gauge(t.waterTemp, s.temp_agua_c, '°C', RANGES.temp_agua_c, 30, isNew, delta(s.temp_agua_c, prev?.temp_agua_c))}
+      ${gauge('UV', s.uv_index, '', RANGES.uv_index, 18, isNew, delta(s.uv_index, prev?.uv_index))}
+      ${gauge('pH', s.ph, '', null, 14, isNew, delta(s.ph, prev?.ph))}
+    </div><p class="age" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ` · <span class="stale">${t.stale}</span>` : ''}</p>`
 }
 
 /** Línea bajo la curva: cómo la cámara recalibró el modelo. */
@@ -281,8 +286,8 @@ function historyHtml(serie: SensorReading[]): string {
       <span class="hist-range">${lo}–${hi} ${unit}</span></div>`
   }
   return `<div class="hist"><p class="muted small">${t.history(horas, serie.length)}</p>
-    ${row('TDS', serie.map((s) => s.tds_ppm), 'ppm', '#1f6f5c')}
-    ${row(t.waterTemp, serie.map((s) => s.temp_agua_c), '°C', '#e07a2e')}</div>`
+    ${row('TDS', serie.map((s) => s.tds_ppm), 'ppm', '#2c8c8f')}
+    ${row(t.waterTemp, serie.map((s) => s.temp_agua_c), '°C', '#c4552d')}</div>`
 }
 
 function photoUrl(foto: string) {
@@ -312,6 +317,7 @@ function chartSvg(
 
   const pBase = project(b0, K, base, HORIZON_DAYS, alpha)
   const pScen = project(b0, K, cond, HORIZON_DAYS, alpha)
+  const area = `${path(pScen)}L${x(maxDay).toFixed(1)},${y(0).toFixed(1)}L${x(startDay).toFixed(1)},${y(0).toFixed(1)}Z`
   // Ajuste del modelo recalibrado sobre el periodo medido (desde la primera foto).
   const fitDays = startDay
   const pFit = vis.length > 1 ? project(vis[0].biomasa_kg, K, base, fitDays, alpha) : []
@@ -325,13 +331,17 @@ function chartSvg(
 
   return `
   <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${t.curve}">
+    <defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b7a4c" stop-opacity=".28"/><stop offset="1" stop-color="#3b7a4c" stop-opacity="0"/></linearGradient></defs>
     ${yTicks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="axis" text-anchor="end">${v.toFixed(0)}</text>`).join('')}
+    <text x="${L + 4}" y="${y(yMax) + 4}" class="axis">kg</text>
     ${xTicks.map((d) => `<text x="${x(d)}" y="${H - 10}" class="axis" text-anchor="middle">${d} ${t.dayUnit}</text>`).join('')}
-    <text x="${L}" y="${T - 2}" class="axis">kg</text>
     <line x1="${L}" x2="${W - R}" y1="${y(umbral)}" y2="${y(umbral)}" class="umbral"/>
-    <text x="${W - R}" y="${y(umbral) - 4}" class="axis" text-anchor="end">${t.harvestPoint}</text>
+    <text x="${W - R}" y="${y(umbral) - 5}" class="axis umbral-lbl" text-anchor="end">${t.harvestPoint}</text>
     <line x1="${L}" x2="${W - R}" y1="${y(K)}" y2="${y(K)}" class="cap"/>
     ${fitPath ? `<path d="${fitPath}" class="fit"/>` : ''}
+    <path d="${area}" class="area"/>
+    <line x1="${x(startDay)}" x2="${x(startDay)}" y1="${T}" y2="${H - B}" class="hoy"/>
+    <text x="${x(startDay) + 5}" y="${H - B - 5}" class="hoy-lbl">${t.today}</text>
     <path d="${path(pBase)}" class="base"/>
     <path d="${path(pScen)}" class="scen"/>
     ${vis.map((v) => `<circle cx="${x((Date.parse(v.timestamp) - t0) / DAY)}" cy="${y(v.biomasa_kg)}" r="5" class="real"><title>${v.biomasa_kg} kg</title></circle>`).join('')}

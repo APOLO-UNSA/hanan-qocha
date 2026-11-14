@@ -167,3 +167,16 @@ h3 { margin-top: 1.75rem; }
 .hist-label { color: var(--muted); font-size: .85rem; }
 .hist-range { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .spark { width: 100%; height: 34px; display: block; overflow: visible; }
+
+/* Modo presentación (?video=1) */
+.video { font-size: 18px; }
+.video .top-right, .video .supuestos, .video .leaflet-control-layers { display: none; }
+.video .map-screen { grid-template-columns: 1fr; height: calc(100vh - 54px); }
+.video .map-screen .panel { display: none; }
+.video .chart .axis { font-size: 13px; }
+.video .page { max-width: 1200px; }
+.video .iac-badge strong { font-size: 2.6rem; }
+.demo-chip {
+  position: fixed; right: 12px; bottom: 12px; z-index: 1000;
+  background: #fff3c4; color: #6b5200; font-size: .75rem; padding: .2rem .6rem; border-radius: 99px; opacity: .9;
+}

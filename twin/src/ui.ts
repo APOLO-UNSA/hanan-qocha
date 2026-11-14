@@ -5,5 +5,8 @@ export const pct = (x: number | null) => (x == null ? '—' : `${Math.round(x * 
 
 import { LANG } from './i18n'
 
+/** Modo presentación (?video=1): tomas limpias para el video y el pitch. */
+export const VIDEO = typeof location !== 'undefined' && new URLSearchParams(location.search).has('video')
+
 export const fmtTime = (iso?: string) =>
   iso ? new Date(iso).toLocaleString(LANG === 'en' ? 'en-US' : 'es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : '—'

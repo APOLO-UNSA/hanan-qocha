@@ -3,7 +3,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Dataset } from '../data'
 import { cochaState, ESTADO_INFO } from '../model'
-import { esc, pct } from '../ui'
+import { esc, pct, VIDEO } from '../ui'
 import { IAC, t } from '../i18n'
 
 let map: L.Map | undefined
@@ -38,7 +38,7 @@ export function renderMap(root: HTMLElement, d: Dataset) {
       </aside>
     </section>`
 
-  map = L.map(root.querySelector<HTMLElement>('#map')!, { zoomControl: true })
+  map = L.map(root.querySelector<HTMLElement>('#map')!, { zoomControl: true, zoomSnap: 0.25 })
   const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services'
   const satelite = L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, {
     maxZoom: 18,
@@ -59,7 +59,7 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     const { lat, lon } = s.site
     bounds.push([lat, lon])
     L.circleMarker([lat, lon], {
-      radius: 11,
+      radius: VIDEO ? 14 : 11,
       color: '#fff',
       weight: 2,
       fillColor: ESTADO_INFO[s.estado].color,
@@ -67,8 +67,23 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     })
       .addTo(map)
       .bindTooltip(`${esc(s.site.nombre)} · ${IAC} ${pct(s.iac)}`)
-      .on('click', () => (location.hash = `#/cocha/${encodeURIComponent(s.site.cocha_id)}`))
+      .on('click', () => {
+        const go = () => (location.hash = `#/cocha/${encodeURIComponent(s.site.cocha_id)}`)
+        if (!VIDEO || !map) return go()
+        // En el video: acercarse a la cocha antes de abrir su ficha.
+        // Los círculos se escalan durante la animación: se ocultan y queda el nombre de la cocha.
+        map.getPane('overlayPane')!.style.opacity = '0'
+        map.once('moveend', () => setTimeout(go, 300))
+        map.flyTo([lat, lon], 13, { duration: 1.6 })
+      })
   }
-  if (bounds.length) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 12 })
-  else map.setView([-16.25, -71.35], 10)
+  // Encuadre inicial; se repite tras el primer cuadro, cuando el contenedor ya tiene su tamaño final.
+  const encuadrar = () => {
+    if (!map) return
+    map.invalidateSize()
+    if (bounds.length) map.fitBounds(bounds, { padding: VIDEO ? [80, 80] : [60, 60], maxZoom: 12 })
+    else map.setView([-16.25, -71.35], 10)
+  }
+  encuadrar()
+  requestAnimationFrame(encuadrar)
 }

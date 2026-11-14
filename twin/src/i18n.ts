@@ -30,6 +30,7 @@ const es = {
   seeDemo: 'ver demo',
   exitDemo: 'salir de la demo',
   demoBanner: 'Datos de demostración: cochas, lecturas y fotos ficticias.',
+  demoChip: 'Datos de demostración',
   loading: 'Cargando datos…',
 
   // mapa
@@ -130,6 +131,7 @@ const en: Dict = {
   seeDemo: 'see demo',
   exitDemo: 'exit demo',
   demoBanner: 'Demo data: fictitious ponds, readings and photos.',
+  demoChip: 'Demo data',
   loading: 'Loading data…',
 
   candidates: 'Candidate ponds',

@@ -3,8 +3,10 @@ import { DATA_SOURCE, DEFAULT_SOURCE, loadDataset, sourceUrl, type Dataset } fro
 import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
 import { LANG, langUrl, t } from './i18n'
+import { VIDEO } from './ui'
 
 document.documentElement.lang = LANG
+if (VIDEO) document.documentElement.classList.add('video')
 
 const LIVE = DATA_SOURCE === 'live'
 const POLL_MS = Number(import.meta.env.VITE_POLL_MS ?? 10_000)
@@ -19,7 +21,7 @@ app.innerHTML = `
       <span class="lang">${LANG === 'es' ? '<b>ES</b>' : `<a href="${langUrl('es')}">ES</a>`} · ${LANG === 'en' ? '<b>EN</b>' : `<a href="${langUrl('en')}">EN</a>`}</span>
     </nav>
   </header>
-  ${DATA_SOURCE === 'demo' ? `<div class="demo-banner">${t.demoBanner}</div>` : ''}
+  ${DATA_SOURCE === 'demo' ? (VIDEO ? `<div class="demo-chip">${t.demoChip}</div>` : `<div class="demo-banner">${t.demoBanner}</div>`) : ''}
   <main id="view"></main>`
 const view = app.querySelector<HTMLElement>('#view')!
 

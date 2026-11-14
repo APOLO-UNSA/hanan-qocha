@@ -228,7 +228,7 @@ def a_camara(im, resample=Image.BICUBIC, coef=None):
 
 
 # ---------------------------------------------------------------- 3-5. render de una toma
-def render(id_, n, total, v, mundo_img, agua, geo, pts, fondo):
+def render(id_, n, total, v, mundo_img, agua, geo, pts, fondo, capa=True):
     cx, cy, rx, ry = geo
     area_agua = float(agua.sum())
     cob = v["cobertura_pct"]
@@ -269,6 +269,8 @@ def render(id_, n, total, v, mundo_img, agua, geo, pts, fondo):
     img = 255 * ((np.clip(img, 0, 255) / 255) ** .86) * 1.06  # exposición: más luminosa, como una toma de día
     img = img + rng.normal(0, 5, img.shape)
     foto = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).resize((OUT_W, OUT_H), Image.LANCZOS)
+    if not capa:  # foto "cruda", sin la capa de visión (para probar marcar-fotos.py)
+        return foto
 
     # capa de visión: segmentación + contornos + cajas
     lab_s = np.asarray(Image.fromarray(lab).resize((OUT_W, OUT_H), Image.NEAREST))

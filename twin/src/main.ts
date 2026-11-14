@@ -22,6 +22,7 @@ app.innerHTML = `
     </nav>
   </header>
   ${DATA_SOURCE === 'demo' ? (VIDEO ? `<div class="demo-chip">${t.demoChip}</div>` : `<div class="demo-banner">${t.demoBanner}</div>`) : ''}
+  <div id="offline" class="offline" hidden>${t.offline}</div>
   <main id="view"></main>`
 const view = app.querySelector<HTMLElement>('#view')!
 
@@ -60,3 +61,15 @@ async function start() {
 }
 
 start()
+
+// Sin señal en el bofedal: aviso visible y la app sigue con lo último guardado (ver public/sw.js).
+const offlineEl = app.querySelector<HTMLElement>('#offline')!
+const syncOnline = () => (offlineEl.hidden = navigator.onLine)
+window.addEventListener('online', syncOnline)
+window.addEventListener('offline', syncOnline)
+syncOnline()
+
+// El service worker solo en producción: en desarrollo interferiría con el modo en vivo.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch((e) => console.warn('[gemelo] sin modo offline:', e))
+}

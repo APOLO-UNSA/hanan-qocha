@@ -56,3 +56,11 @@ Se regenera con `node scripts/gen-demo.mjs` (determinista) y cumple los contrato
 Español o inglés con el selector **ES · EN** de la barra, o con `?lang=en` / `?lang=es` en la URL (se recuerda en el
 navegador). Los textos están en `src/i18n.ts`; las recomendaciones usan `mensaje_es` / `mensaje_en` de
 `recommendations.json`. En inglés el IAC se muestra como **CSI** (Cushuro Suitability Index).
+
+## Sin conexión (instalable)
+
+En la app publicada, `public/sw.js` (service worker escrito a mano, sin dependencias) guarda la app, los últimos
+datos y las teselas del mapa ya vistas (hasta 400). Sin señal, la app abre igual con lo último guardado y muestra
+el aviso "Sin conexión". `public/manifest.webmanifest` permite **instalarla** en el celular ("Agregar a pantalla de
+inicio"). En desarrollo (`npm run dev`) el service worker no se registra, para no interferir con el modo en vivo.
+Si se cambia la estrategia de caché, subir `VERSION` en `sw.js`.

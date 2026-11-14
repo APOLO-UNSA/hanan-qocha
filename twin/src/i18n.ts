@@ -31,6 +31,7 @@ const es = {
   exitDemo: 'salir de la demo',
   demoBanner: 'Datos de demostración: cochas, lecturas y fotos ficticias.',
   demoChip: 'Datos de demostración',
+  offline: 'Sin conexión · mostrando los últimos datos guardados',
   loading: 'Cargando datos…',
 
   // mapa
@@ -132,6 +133,7 @@ const en: Dict = {
   exitDemo: 'exit demo',
   demoBanner: 'Demo data: fictitious ponds, readings and photos.',
   demoChip: 'Demo data',
+  offline: 'Offline · showing last saved data',
   loading: 'Loading data…',
 
   candidates: 'Candidate ponds',

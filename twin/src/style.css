@@ -180,3 +180,7 @@ h3 { margin-top: 1.75rem; }
   position: fixed; right: 12px; bottom: 12px; z-index: 1000;
   background: #fff3c4; color: #6b5200; font-size: .75rem; padding: .2rem .6rem; border-radius: 99px; opacity: .9;
 }
+
+/* Sin conexión */
+.offline { background: #3b4a45; color: #fff; text-align: center; font-size: .85rem; padding: .3rem 1rem; }
+.offline[hidden] { display: none; }

@@ -6,6 +6,10 @@ Hanan Qocha (quechua: "laguna de arriba") ayuda a los productores de cushuro (*N
 
 Plan completo: [docs/HANAN_QOCHA_PROYECTO.md](docs/HANAN_QOCHA_PROYECTO.md)
 
+**App publicada:** https://apolo-unsa.github.io/hanan-qocha/ · [demo](https://apolo-unsa.github.io/hanan-qocha/?datos=demo)
+
+> 📌 **Equipo: qué entrega cada uno al gemelo (antes de M2, sábado 20:00) → [docs/INTEGRACION_GEMELO.md](docs/INTEGRACION_GEMELO.md)**
+
 ## Estructura
 
 | Carpeta | Contenido |

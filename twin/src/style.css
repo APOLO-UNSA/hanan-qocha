@@ -139,3 +139,9 @@ h3 { margin-top: 1.75rem; }
 .top-right { display: flex; gap: .5rem; align-items: center; }
 .lang { font-size: .75rem; border: 1px solid #ffffff55; border-radius: 99px; padding: .1rem .6rem; }
 .lang a { color: #fff; opacity: .75; text-decoration: none; }
+
+/* Recalibración */
+.chart .fit { fill: none; stroke: #e07a2e; stroke-width: 1.5; opacity: .7; }
+.l-fit { border-color: #e07a2e !important; opacity: .7; }
+.calib { margin: .5rem 0 0; padding: .4rem .6rem; background: #fdf1e7; border-radius: 6px; color: var(--ink); }
+.calib.muted { background: var(--bg); color: var(--muted); }

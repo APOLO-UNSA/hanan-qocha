@@ -10,6 +10,7 @@ import {
   project,
   RANGES,
   recommend,
+  type Calibration,
   type Conditions,
 } from '../model'
 import { esc, fmtTime, pct } from '../ui'
@@ -175,8 +176,9 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       bar.style.width = `${f[sl.key] * 100}%`
       bar.style.background = f[sl.key] >= 0.7 ? '#2e9d5b' : f[sl.key] >= 0.4 ? '#e0a526' : '#c8473b'
     }
-    $('#chart').innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond)
-    $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations)
+    const alpha = st.calib?.alpha ?? 1
+    $('#chart').innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha) + calibHtml(st.calib)
+    $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha)
       .map((a) => `<li class="${a.nivel}"><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</li>`)
       .join('')
   }
@@ -237,6 +239,13 @@ function sensorHtml(s?: SensorReading, prev?: SensorReading): string {
     </dl><p class="muted small" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ' · <span class="stale">${t.stale}</span>' : ''}</p>`
 }
 
+/** Línea bajo la curva: cómo la cámara recalibró el modelo. */
+function calibHtml(c: Calibration | null): string {
+  if (!c) return `<p class="calib muted small">${t.calibNone}</p>`
+  const mejora = c.errAntes > 0 ? Math.round((1 - c.errDespues / c.errAntes) * 100) : 0
+  return `<p class="calib small">${t.calibDone(c.n, c.alpha.toFixed(2), (PARAMS.r_max * c.alpha).toFixed(3), c.errAntes.toFixed(1), c.errDespues.toFixed(1), mejora)}</p>`
+}
+
 function photoUrl(foto: string) {
   return /^(https?:|data:|\/)/.test(foto) ? foto : `${import.meta.env.BASE_URL}${foto}`
 }
@@ -248,6 +257,7 @@ function chartSvg(
   K: number,
   base: Conditions,
   cond: Conditions,
+  alpha = 1,
 ): string {
   const W = 640, H = 260, L = 44, R = 24, T = 12, B = 30
   const t0 = vis.length ? Date.parse(vis[0].timestamp) : Date.now()
@@ -259,8 +269,12 @@ function chartSvg(
   const y = (kg: number) => T + (1 - kg / yMax) * (H - T - B)
   const path = (serie: number[]) => serie.map((b, i) => `${i ? 'L' : 'M'}${x(startDay + i).toFixed(1)},${y(b).toFixed(1)}`).join('')
 
-  const pBase = project(b0, K, base, HORIZON_DAYS)
-  const pScen = project(b0, K, cond, HORIZON_DAYS)
+  const pBase = project(b0, K, base, HORIZON_DAYS, alpha)
+  const pScen = project(b0, K, cond, HORIZON_DAYS, alpha)
+  // Ajuste del modelo recalibrado sobre el periodo medido (desde la primera foto).
+  const fitDays = startDay
+  const pFit = vis.length > 1 ? project(vis[0].biomasa_kg, K, base, fitDays, alpha) : []
+  const fitPath = pFit.map((b, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(b).toFixed(1)}`).join('')
   const umbral = PARAMS.umbral_cosecha * K
 
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * yMax)
@@ -275,6 +289,7 @@ function chartSvg(
     <line x1="${L}" x2="${W - R}" y1="${y(umbral)}" y2="${y(umbral)}" class="umbral"/>
     <text x="${W - R}" y="${y(umbral) - 4}" class="axis" text-anchor="end">${t.harvestPoint}</text>
     <line x1="${L}" x2="${W - R}" y1="${y(K)}" y2="${y(K)}" class="cap"/>
+    ${fitPath ? `<path d="${fitPath}" class="fit"/>` : ''}
     <path d="${path(pBase)}" class="base"/>
     <path d="${path(pScen)}" class="scen"/>
     ${vis.map((v) => `<circle cx="${x((Date.parse(v.timestamp) - t0) / DAY)}" cy="${y(v.biomasa_kg)}" r="5" class="real"><title>${v.biomasa_kg} kg</title></circle>`).join('')}
@@ -283,5 +298,6 @@ function chartSvg(
     <span><i class="l-scen"></i>${t.legendScenario}</span>
     <span><i class="l-base"></i>${t.legendBase}</span>
     <span><i class="l-real"></i>${t.legendReal}</span>
+    ${vis.length > 1 ? `<span><i class="l-fit"></i>${t.legendFit}</span>` : ''}
   </div>`
 }

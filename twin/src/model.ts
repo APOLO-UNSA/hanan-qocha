@@ -61,8 +61,8 @@ export function dailyRate(c: Conditions): number {
  * (La fórmula del documento multiplica (1+r)·(1−b/K), lo que haría decrecer la biomasa;
  * aquí se usa la forma logística discreta habitual.)
  */
-export function project(b0: number, K: number, c: Conditions, days: number): number[] {
-  const r = dailyRate(c)
+export function project(b0: number, K: number, c: Conditions, days: number, alpha = 1): number[] {
+  const r = alpha * dailyRate(c)
   const out = [b0]
   let b = b0
   for (let t = 0; t < days; t++) {
@@ -74,6 +74,39 @@ export function project(b0: number, K: number, c: Conditions, days: number): num
 
 // ---------- Estado de una cocha ----------
 
+// ---------- Recalibración con la visión ----------
+
+export interface Calibration {
+  alpha: number // factor sobre la tasa del modelo (1 = sin cambio)
+  n: number // nº de fotos usadas
+  errAntes: number // error medio (kg) del modelo original
+  errDespues: number // error medio (kg) del modelo recalibrado
+}
+
+/**
+ * Cierra el ciclo: ajusta un factor α sobre la tasa diaria para que el modelo reproduzca la serie
+ * medida por la cámara. Para cada par de fotos consecutivas proyecta desde la primera y compara con
+ * la segunda; elige el α (0,05–3) con menor error cuadrático. Necesita al menos 2 fotos.
+ */
+export function calibrate(vis: { timestamp: string; biomasa_kg: number }[], K: number, c: Conditions): Calibration | null {
+  if (vis.length < 2 || dailyRate(c) <= 0) return null
+  const pairs = vis.slice(1).map((v, i) => ({
+    b0: vis[i].biomasa_kg,
+    b1: v.biomasa_kg,
+    days: Math.max(1, Math.round((Date.parse(v.timestamp) - Date.parse(vis[i].timestamp)) / 864e5)),
+  }))
+  const err = (alpha: number) => {
+    const sq = pairs.map((p) => (project(p.b0, K, c, p.days, alpha).at(-1)! - p.b1) ** 2)
+    return Math.sqrt(sq.reduce((a, b) => a + b, 0) / sq.length)
+  }
+  let best = 1, bestErr = err(1)
+  for (let a = 0.05; a <= 3.0001; a += 0.01) {
+    const e = err(a)
+    if (e < bestErr) [best, bestErr] = [a, e]
+  }
+  return { alpha: Math.round(best * 100) / 100, n: vis.length, errAntes: err(1), errDespues: bestErr }
+}
+
 export interface CochaState {
   site: Site
   sensor?: SensorReading
@@ -84,6 +117,7 @@ export interface CochaState {
   iac: number
   estado: 'apta' | 'condicional' | 'no-apta'
   etapa: 0 | 1 | 2 | 3 // Apta, Sembrada, Creciendo, Lista para cosechar
+  calib: Calibration | null
 }
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x))
@@ -152,7 +186,8 @@ export function cochaState(d: Dataset, site: Site): CochaState {
         ? 2
         : 1
 
-  return { site, sensor, capacidad_kg, biomasa_kg, indice_in_situ, indice_vision, iac, estado, etapa }
+  const calib = calibrate(vis, capacidad_kg, conditionsFrom(sensor))
+  return { site, sensor, capacidad_kg, biomasa_kg, indice_in_situ, indice_vision, iac, estado, etapa, calib }
 }
 
 export const ESTADO_INFO = {
@@ -198,6 +233,7 @@ export function recommend(
   biomasa_kg: number,
   capacidad_kg: number,
   recs: Recommendation[],
+  alpha = 1,
 ): Action[] {
   const actions: Action[] = []
   const f = factors(c)
@@ -228,7 +264,7 @@ export function recommend(
       nivel: 'ok',
     })
   } else {
-    const serie = project(biomasa_kg, capacidad_kg, c, 365)
+    const serie = project(biomasa_kg, capacidad_kg, c, 365, alpha)
     const dia = serie.findIndex((b) => b >= umbral)
     actions.push(
       dia > 0

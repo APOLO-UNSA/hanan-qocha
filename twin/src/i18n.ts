@@ -97,6 +97,12 @@ const es = {
   legendScenario: 'Escenario (sliders)',
   legendBase: 'Proyección con la lectura real',
   legendReal: 'Medido por la cámara',
+  legendFit: 'Ajuste recalibrado',
+  calibNone: 'El modelo se recalibra cuando la cámara tenga al menos 2 fotos.',
+  calibDone: (n: number, a: string, r: string, e0: string, e1: string, pct: number) =>
+    pct < 5
+      ? `<b>Modelo verificado con ${n} fotos:</b> ya coincidía con lo medido (error medio ${e1} kg), tasa ×${a}.`
+      : `<b>Modelo recalibrado con ${n} fotos:</b> tasa ×${a} (r<sub>max</sub> efectivo ${r}/día). Error medio ${e0} → ${e1} kg (${pct} % menos).`,
 
   // acciones del modelo
   renewWater: 'Renovar agua',
@@ -185,6 +191,12 @@ const en: Dict = {
   legendScenario: 'Scenario (sliders)',
   legendBase: 'Projection from real reading',
   legendReal: 'Measured by camera',
+  legendFit: 'Recalibrated fit',
+  calibNone: 'The model is recalibrated once the camera has at least 2 photos.',
+  calibDone: (n, a, r, e0, e1, pct) =>
+    pct < 5
+      ? `<b>Model verified with ${n} photos:</b> it already matched the measurements (mean error ${e1} kg), rate ×${a}.`
+      : `<b>Model recalibrated with ${n} photos:</b> rate ×${a} (effective r<sub>max</sub> ${r}/day). Mean error ${e0} → ${e1} kg (${pct} % lower).`,
 
   renewWater: 'Renew water',
   renewWaterDet: (tds) => `TDS of ${tds} ppm: look for clean water inflow.`,

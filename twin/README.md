@@ -35,6 +35,8 @@ Si un archivo falta o está roto, la app lo trata como vacío y sigue funcionand
 - Aptitud trapezoidal por variable (T, UV, TDS, profundidad) y `tasa = r_max · Πf`.
 - Crecimiento logístico discreto `b + r·b·(1 − b/K)`; `K` se estima con `biomasa_kg / cobertura`.
 - `IAC = 0,4·satélite + 0,4·in situ + 0,2·visión`; si falta una fuente, su peso se reparte.
+- **Recalibración (cierra el ciclo):** con ≥ 2 fotos de visión se ajusta un factor α sobre la tasa
+  (0,05–3) que minimiza el error entre lo proyectado y lo medido; curva, "esperar N semanas" y cosecha usan esa tasa.
 - `recommendations.json`: la `condicion` admite comparaciones simples unidas con `&&`
   (variables: `tds_ppm`, `temp_agua_c`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`).
 

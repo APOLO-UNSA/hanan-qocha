@@ -90,6 +90,7 @@ const es = {
   secondsAgo: 'hace segundos',
   minAgo: (m: number) => `hace ${m} min`,
   stale: 'sin datos recientes',
+  history: (h: number, n: number) => `Últimas ${h} h · ${n} lecturas`,
 
   // gráfico
   harvestPoint: 'punto de cosecha',
@@ -185,6 +186,7 @@ const en: Dict = {
   secondsAgo: 'seconds ago',
   minAgo: (m) => `${m} min ago`,
   stale: 'no recent data',
+  history: (h, n) => `Last ${h} h · ${n} readings`,
 
   harvestPoint: 'harvest point',
   dayUnit: 'd',

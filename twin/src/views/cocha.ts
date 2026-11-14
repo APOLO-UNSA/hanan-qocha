@@ -1,6 +1,6 @@
 // Pantalla 2 (ruta de cultivo) y Pantalla 3 (gemelo de la cocha).
 import type { Dataset, SensorReading } from '../data'
-import { visionSeries } from '../data'
+import { sensorHistory, visionSeries } from '../data'
 import {
   cochaState,
   conditionsFrom,
@@ -124,7 +124,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       <div><span>${t.idxSatellite}</span><b>${pct(site.indice_satelital)}</b><small>×0,4</small></div>
       <div><span>${t.idxInSitu}</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>
       <div><span>${t.idxVision}</span><b>${pct(st.indice_vision)}</b><small>×0,2</small></div>`
-    $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor)
+    $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id))
     renderVision()
     $('#supuestos').innerHTML = t.assumptions({
       tLo: RANGES.temp_agua_c.optLo, tHi: RANGES.temp_agua_c.optHi,
@@ -257,6 +257,32 @@ function calibHtml(c: Calibration | null): string {
   if (!c) return `<p class="calib muted small">${t.calibNone}</p>`
   const mejora = c.errAntes > 0 ? Math.round((1 - c.errDespues / c.errAntes) * 100) : 0
   return `<p class="calib small">${t.calibDone(c.n, c.alpha.toFixed(2), (PARAMS.r_max * c.alpha).toFixed(3), c.errAntes.toFixed(1), c.errDespues.toFixed(1), mejora)}</p>`
+}
+
+/** Minigráficos de TDS y temperatura en las últimas 48 h (el texto va fuera del SVG para que no se encoja). */
+function historyHtml(serie: SensorReading[]): string {
+  if (serie.length < 2) return ''
+  const t0 = Date.parse(serie[0].timestamp)
+  const t1 = Date.parse(serie.at(-1)!.timestamp)
+  const horas = Math.max(1, Math.round((t1 - t0) / 3600e3))
+  const spark = (vals: number[], color: string) => {
+    const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1
+    const pts = serie.map((s, i) => {
+      const x = t1 > t0 ? ((Date.parse(s.timestamp) - t0) / (t1 - t0)) * 200 : (i / (serie.length - 1)) * 200
+      const y = 36 - ((vals[i] - lo) / span) * 32
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    return `<svg viewBox="0 0 200 40" preserveAspectRatio="none" class="spark" aria-hidden="true">
+      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
+  }
+  const row = (label: string, vals: number[], unit: string, color: string) => {
+    const lo = Math.min(...vals), hi = Math.max(...vals)
+    return `<div class="hist-row"><span class="hist-label">${label}</span>${spark(vals, color)}
+      <span class="hist-range">${lo}–${hi} ${unit}</span></div>`
+  }
+  return `<div class="hist"><p class="muted small">${t.history(horas, serie.length)}</p>
+    ${row('TDS', serie.map((s) => s.tds_ppm), 'ppm', '#1f6f5c')}
+    ${row(t.waterTemp, serie.map((s) => s.temp_agua_c), '°C', '#e07a2e')}</div>`
 }
 
 function photoUrl(foto: string) {

@@ -149,6 +149,13 @@ export function latestSensor(d: Dataset, id: string): SensorReading | undefined 
   return d.sensor.filter((s) => s.cocha_id === id).sort(byTime).at(-1)
 }
 
+/** Lecturas del sensor de una cocha en las últimas `horas` (contadas desde la más reciente), ordenadas. */
+export function sensorHistory(d: Dataset, id: string, horas = 48): SensorReading[] {
+  const serie = d.sensor.filter((s) => s.cocha_id === id).sort(byTime)
+  const fin = Date.parse(serie.at(-1)?.timestamp ?? '')
+  return Number.isFinite(fin) ? serie.filter((s) => fin - Date.parse(s.timestamp) <= horas * 3600e3) : []
+}
+
 /** Serie de visión ordenada en el tiempo para una cocha. */
 export function visionSeries(d: Dataset, id: string): VisionResult[] {
   return d.vision.filter((v) => v.cocha_id === id).sort(byTime)

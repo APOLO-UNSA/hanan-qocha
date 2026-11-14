@@ -6,7 +6,8 @@ App web del gemelo digital. Vite + TypeScript, sin framework; mapa con Leaflet.
 cd twin
 npm install
 npm run dev        # http://localhost:5173/hanan-qocha/
-npm run build      # genera dist/ (lo publica deploy.yml en GitHub Pages)
+npm test           # pruebas del modelo y de la carga de datos (vitest)
+npm run build      # corre las pruebas y genera dist/ (lo publica deploy.yml en GitHub Pages)
 ```
 
 ## Datos

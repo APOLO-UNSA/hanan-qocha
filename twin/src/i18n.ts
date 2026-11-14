@@ -2,6 +2,7 @@
 export type Lang = 'es' | 'en'
 
 function detect(): Lang {
+  if (typeof location === 'undefined') return 'es' // fuera del navegador (pruebas)
   const q = new URLSearchParams(location.search).get('lang')
   if (q === 'es' || q === 'en') {
     try { localStorage.setItem('hq-lang', q) } catch { /* sin almacenamiento */ }

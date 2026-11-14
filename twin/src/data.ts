@@ -47,7 +47,7 @@ const SOURCES: DataSource[] = ['processed', 'live', 'mock', 'demo']
 export const DEFAULT_SOURCE: DataSource = SOURCES.includes(import.meta.env.VITE_DATA_SOURCE)
   ? import.meta.env.VITE_DATA_SOURCE
   : 'processed'
-const fromUrl = new URLSearchParams(location.search).get('datos') as DataSource | null
+const fromUrl = (typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('datos')) as DataSource | null
 export const DATA_SOURCE: DataSource = fromUrl && SOURCES.includes(fromUrl) ? fromUrl : DEFAULT_SOURCE
 
 /** URL con la fuente cambiada (conserva el resto de la URL). */

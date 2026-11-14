@@ -24,8 +24,9 @@ Si su archivo está en `data/processed/`, el gemelo lo usa **en lugar del mock**
 
 1. **`cocha_id` debe coincidir en los cuatro archivos.** Así se une el sensor, la visión y el satélite de una misma cocha. Propuesta: `SAB-01`, `SAB-02`… Adrián define la lista en `sites.json` y los demás usan esos códigos.
 2. **Fechas** en ISO con zona horaria de Perú: `2026-11-14T10:00:00-05:00`.
-3. **Nada de campos extra.** El contrato no los permite y el CI falla. Si necesitan un campo nuevo, pídanselo a Pax (los contratos los aprueba Pax).
-4. Suban un **primer archivo aunque sea parcial**, ya. Así el CI valida el formato temprano y no a las 19:55.
+3. **Si un registro está mal** (un número como texto, una fecha inválida), el gemelo lo descarta y sigue; el aviso sale en la consola del navegador (F12). El CI igual lo marca.
+4. **Nada de campos extra.** El contrato no los permite y el CI falla. Si necesitan un campo nuevo, pídanselo a Pax (los contratos los aprueba Pax).
+5. Suban un **primer archivo aunque sea parcial**, ya. Así el CI valida el formato temprano y no a las 19:55.
 
 ## Ver sus datos en el gemelo (en su computadora)
 
@@ -71,7 +72,7 @@ bash scripts/validate_data.sh
 ]
 ```
 
-- `indice_satelital` **entre 0 y 1** (el contrato todavía no lo limita, pero el IAC lo asume).
+- `indice_satelital` **entre 0 y 1** (el contrato lo exige: fuera de ese rango el CI falla).
 - `lat`/`lon` en grados decimales (WGS84), con **3 o más decimales** para que caigan sobre la cocha en el mapa satelital.
 - Tú defines los `cocha_id`: pásale la lista a Paolo y a Victor.
 
@@ -103,8 +104,8 @@ bash scripts/validate_data.sh
 ```
 
 - **`condicion`** admite comparaciones simples (`<`, `<=`, `>`, `>=`, `==`, `!=`) unidas con `&&`, por ejemplo `temp_agua_c > 17 && uv_index > 12`.
-- Variables disponibles: `tds_ppm`, `temp_agua_c`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`.
-  (`ph` todavía no: si lo necesitas, avisa a Pax.)
+- Variables disponibles: `tds_ppm`, `temp_agua_c`, `ph`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`.
+  Si una cocha no tiene esa medición (p. ej. sin sensor de pH), la condición no se cumple.
 - El código **`OK`** es especial: se muestra solo cuando no hay ninguna alerta.
 - Hay ejemplos de redacción en `twin/public/demo/recommendations.json`.
 

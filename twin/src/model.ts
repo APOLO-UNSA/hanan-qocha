@@ -238,10 +238,11 @@ export function recommend(
   capacidad_kg: number,
   recs: Recommendation[],
   alpha = 1,
+  extra: Record<string, number | undefined> = {}, // variables medidas que no entran al modelo (p. ej. ph)
 ): Action[] {
   const actions: Action[] = []
   const f = factors(c)
-  const vars = { ...c, biomasa_kg, capacidad_kg, biomasa_pct: (100 * biomasa_kg) / capacidad_kg }
+  const vars = { ...extra, ...c, biomasa_kg, capacidad_kg, biomasa_pct: (100 * biomasa_kg) / capacidad_kg }
 
   // 1. Mensajes del equipo de negocio (recommendations.json) que se cumplan.
   for (const r of recs) {

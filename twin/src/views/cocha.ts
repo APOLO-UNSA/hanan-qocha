@@ -178,7 +178,9 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     }
     const alpha = st.calib?.alpha ?? 1
     $('#chart').innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha) + calibHtml(st.calib)
-    $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha)
+    $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha, {
+      ph: st.sensor?.ph,
+    })
       .map((a) => `<li class="${a.nivel}"><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</li>`)
       .join('')
   }

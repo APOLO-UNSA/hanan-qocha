@@ -22,7 +22,8 @@ La app solo lee `data/<nombre>.json` (`sites`, `sensor`, `vision`, `recommendati
   - `mock`: solo `data/mock`
 - **Producción:** `deploy.yml` copia `data/mock` y encima `data/processed` a `dist/data/`.
 
-Si un archivo falta o está roto, la app lo trata como vacío y sigue funcionando.
+Si un archivo **falta**, la app lo trata como vacío. Si **falla** al cargar (JSON a medio escribir, red), conserva los datos
+anteriores. Los registros que no cumplen el contrato se descartan con un aviso en la consola.
 
 ## Pantallas
 
@@ -38,7 +39,7 @@ Si un archivo falta o está roto, la app lo trata como vacío y sigue funcionand
 - **Recalibración (cierra el ciclo):** con ≥ 2 fotos de visión se ajusta un factor α sobre la tasa
   (0,05–3) que minimiza el error entre lo proyectado y lo medido; curva, "esperar N semanas" y cosecha usan esa tasa.
 - `recommendations.json`: la `condicion` admite comparaciones simples unidas con `&&`
-  (variables: `tds_ppm`, `temp_agua_c`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`).
+  (variables: `tds_ppm`, `temp_agua_c`, `ph`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`).
 
 Los rangos y parámetros en `RANGES` / `PARAMS` son **supuestos del modelo**.
 

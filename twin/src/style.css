@@ -136,3 +136,6 @@ h3 { margin-top: 1.75rem; }
 .thumbs button.sel { border-color: var(--brand); }
 .thumbs img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; }
 .thumbs span { position: absolute; bottom: 2px; right: 3px; font-size: .65rem; color: #fff; background: #0008; border-radius: 3px; padding: 0 3px; }
+.top-right { display: flex; gap: .5rem; align-items: center; }
+.lang { font-size: .75rem; border: 1px solid #ffffff55; border-radius: 99px; padding: .1rem .6rem; }
+.lang a { color: #fff; opacity: .75; text-decoration: none; }

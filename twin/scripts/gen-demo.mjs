@@ -47,7 +47,7 @@ const PERFILES = {
   salina: { tds: [190, 280], temp: [11, 16], uv: [10, 14], ph: [7.8, 8.8] },
 }
 // Tasa efectiva diaria según la fase (coherente con el modelo del gemelo)
-const FASES = { lista: 0.075, creciendo: 0.06, lenta: 0.03, sembrada: 0.05 }
+const FASES = { lista: 0.095, creciendo: 0.06, lenta: 0.03, sembrada: 0.05 }
 
 const sites = [], sensor = [], vision = []
 

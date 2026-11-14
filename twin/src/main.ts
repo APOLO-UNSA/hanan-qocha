@@ -2,6 +2,9 @@ import './style.css'
 import { DATA_SOURCE, DEFAULT_SOURCE, loadDataset, sourceUrl, type Dataset } from './data'
 import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
+import { LANG, langUrl, t } from './i18n'
+
+document.documentElement.lang = LANG
 
 const LIVE = DATA_SOURCE === 'live'
 const POLL_MS = Number(import.meta.env.VITE_POLL_MS ?? 10_000)
@@ -10,10 +13,13 @@ const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
   <header class="topbar">
     <a href="#/" class="brand"><img src="${import.meta.env.BASE_URL}favicon.svg" alt=""> Hanan Qocha <small>Qocha Twin</small></a>
-    <span class="src" title="Fuente de datos">datos: ${DATA_SOURCE} ·
-      <a href="${sourceUrl(DATA_SOURCE === 'demo' ? DEFAULT_SOURCE : 'demo')}">${DATA_SOURCE === 'demo' ? 'salir de la demo' : 'ver demo'}</a></span>
+    <nav class="top-right">
+      <span class="src" title="${t.dataSource}">${t.data}: ${DATA_SOURCE} ·
+        <a href="${sourceUrl(DATA_SOURCE === 'demo' ? DEFAULT_SOURCE : 'demo')}">${DATA_SOURCE === 'demo' ? t.exitDemo : t.seeDemo}</a></span>
+      <span class="lang">${LANG === 'es' ? '<b>ES</b>' : `<a href="${langUrl('es')}">ES</a>`} · ${LANG === 'en' ? '<b>EN</b>' : `<a href="${langUrl('en')}">EN</a>`}</span>
+    </nav>
   </header>
-  ${DATA_SOURCE === 'demo' ? '<div class="demo-banner">Datos de demostración: cochas, lecturas y fotos ficticias.</div>' : ''}
+  ${DATA_SOURCE === 'demo' ? `<div class="demo-banner">${t.demoBanner}</div>` : ''}
   <main id="view"></main>`
 const view = app.querySelector<HTMLElement>('#view')!
 
@@ -23,7 +29,7 @@ let refreshCocha: Refresh | undefined
 function route() {
   const m = location.hash.match(/^#\/cocha\/([^/]+)/)
   refreshCocha = undefined
-  if (m) refreshCocha = renderCocha(view, data, decodeURIComponent(m[1]), LIVE)
+  if (m) refreshCocha = renderCocha(view, data, decodeURIComponent(m[1]), LIVE, POLL_MS / 1000)
   else renderMap(view, data)
   window.scrollTo(0, 0)
 }
@@ -36,7 +42,7 @@ async function poll() {
 }
 
 async function start() {
-  view.innerHTML = '<p class="page muted">Cargando datos…</p>'
+  view.innerHTML = `<p class="page muted">${t.loading}</p>`
   data = await loadDataset()
   route()
   window.addEventListener('hashchange', route)

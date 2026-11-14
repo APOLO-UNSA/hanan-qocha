@@ -13,19 +13,20 @@ import {
   type Conditions,
 } from '../model'
 import { esc, fmtTime, pct } from '../ui'
+import { IAC, t } from '../i18n'
 
 const ETAPAS = [
-  { t: 'Apta', s: 'satélite' },
-  { t: 'Sembrada', s: 'registro' },
-  { t: 'Creciendo', s: 'sensor + curva + cámara' },
-  { t: 'Lista para cosechar', s: `cosechar, dejar el ${100 - PARAMS.fraccion_cosecha * 100} %` },
+  { t: '', s: '' }, // la primera etapa muestra la aptitud real (ver renderState)
+  { t: t.stageSown, s: t.stageSownSub },
+  { t: t.stageGrowing, s: t.stageGrowingSub },
+  { t: t.stageReady, s: t.stageReadySub(100 - PARAMS.fraccion_cosecha * 100) },
 ]
 
 const SLIDERS: { key: keyof Conditions; label: string; unit: string; min: number; max: number; step: number }[] = [
-  { key: 'temp_agua_c', label: 'Temperatura del agua', unit: '°C', min: 0, max: 30, step: 0.5 },
-  { key: 'uv_index', label: 'Índice UV', unit: '', min: 0, max: 18, step: 0.5 },
-  { key: 'tds_ppm', label: 'Sólidos disueltos (TDS)', unit: 'ppm', min: 0, max: 400, step: 5 },
-  { key: 'profundidad_m', label: 'Profundidad', unit: 'm', min: 0, max: 2, step: 0.05 },
+  { key: 'temp_agua_c', label: t.sTemp, unit: '°C', min: 0, max: 30, step: 0.5 },
+  { key: 'uv_index', label: t.sUv, unit: '', min: 0, max: 18, step: 0.5 },
+  { key: 'tds_ppm', label: t.sTds, unit: 'ppm', min: 0, max: 400, step: 5 },
+  { key: 'profundidad_m', label: t.sDepth, unit: 'm', min: 0, max: 2, step: 0.05 },
 ]
 
 const HORIZON_DAYS = 90
@@ -34,10 +35,10 @@ const DAY = 864e5
 /** Función que la vista devuelve para refrescarse con datos nuevos sin perder el estado de los sliders. */
 export type Refresh = (d: Dataset) => void
 
-export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = false): Refresh | undefined {
+export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = false, pollSeconds = 10): Refresh | undefined {
   const site = d.sites.find((s) => s.cocha_id === id)
   if (!site) {
-    root.innerHTML = `<section class="page"><p>No se encontró la cocha <b>${esc(id)}</b>. <a href="#/">Volver al mapa</a></p></section>`
+    root.innerHTML = `<section class="page"><p>${t.notFound(esc(id))}</p></section>`
     return
   }
   let st = cochaState(d, site)
@@ -49,37 +50,37 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
 
   root.innerHTML = `
     <section class="page">
-      <a class="back" href="#/">← Mapa</a>
+      <a class="back" href="#/">${t.backToMap}</a>
       <header class="cocha-head">
         <div>
           <h2>${esc(site.nombre)}</h2>
-          <p class="muted">${esc(site.cocha_id)} · ${site.altitud_m} m s.n.m. · ${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</p>
+          <p class="muted">${esc(site.cocha_id)} · ${site.altitud_m} ${t.masl} · ${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</p>
         </div>
         <div id="iac-badge" class="iac-badge"></div>
       </header>
       <p id="estado-msg" class="estado-msg"></p>
 
-      <h3>Ruta de cultivo</h3>
+      <h3>${t.route}</h3>
       <ol id="ruta" class="ruta"></ol>
 
       <div id="indices" class="indices"></div>
 
-      <h3>Gemelo de la cocha</h3>
+      <h3>${t.twin}</h3>
       <div class="twin-grid">
         <div class="card">
-          <h4>Qocha Ñawi · última lectura ${live ? '<span class="live" title="Se actualiza cada 10 s">en vivo</span>' : ''}</h4>
+          <h4>${t.lastReading} ${live ? `<span class="live" title="${t.liveTitle(pollSeconds)}">${t.live}</span>` : ''}</h4>
           <div id="sensor"></div>
         </div>
         <div class="card">
-          <h4>Visión artificial <span class="muted small">colonias marcadas</span></h4>
+          <h4>${t.vision} <span class="muted small">${t.coloniesMarked}</span></h4>
           <div id="vision"></div>
         </div>
         <div class="card wide">
-          <h4>Curva de biomasa <span class="muted small">proyectada vs. real</span></h4>
+          <h4>${t.curve} <span class="muted small">${t.curveSub}</span></h4>
           <div id="chart"></div>
         </div>
         <div class="card">
-          <h4>¿Qué pasa si…?</h4>
+          <h4>${t.whatIf}</h4>
           <form id="sliders">
             ${SLIDERS.map(
               (sl) => `
@@ -89,11 +90,11 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
                 <i class="fbar"><i id="f-${sl.key}"></i></i>
               </label>`,
             ).join('')}
-            <button type="reset" class="btn-sec">Volver a la lectura real</button>
+            <button type="reset" class="btn-sec">${t.resetSliders}</button>
           </form>
         </div>
         <div class="card">
-          <h4>Acción recomendada</h4>
+          <h4>${t.action}</h4>
           <ul id="actions" class="actions"></ul>
         </div>
       </div>
@@ -108,7 +109,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     const info = ESTADO_INFO[st.estado]
     const badge = $('#iac-badge')
     badge.style.setProperty('--c', info.color)
-    badge.innerHTML = `<strong>${pct(st.iac)}</strong><span>IAC · ${info.label}</span>`
+    badge.innerHTML = `<strong>${pct(st.iac)}</strong><span>${IAC} · ${info.label}</span>`
     const msg = $('#estado-msg')
     msg.style.borderColor = info.color
     msg.textContent = info.msg
@@ -116,34 +117,36 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     $('#ruta').innerHTML = ETAPAS.map((e, i) => {
       const cls = i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''
       if (i > 0) return `<li class="${cls}"><b>${e.t}</b><small>${e.s}</small></li>`
-      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><b>${info.label}</b><small>IAC ${pct(st.iac)} · satélite + sensor</small></li>`
+      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
     }).join('')
     $('#indices').innerHTML = `
-      <div><span>Satélite</span><b>${pct(site.indice_satelital)}</b><small>×0,4</small></div>
-      <div><span>In situ</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>
-      <div><span>Visión</span><b>${pct(st.indice_vision)}</b><small>×0,2</small></div>`
+      <div><span>${t.idxSatellite}</span><b>${pct(site.indice_satelital)}</b><small>×0,4</small></div>
+      <div><span>${t.idxInSitu}</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>
+      <div><span>${t.idxVision}</span><b>${pct(st.indice_vision)}</b><small>×0,2</small></div>`
     $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor)
     renderVision()
-    $('#supuestos').innerHTML = `
-      Supuestos del modelo: óptimos T ${RANGES.temp_agua_c.optLo}–${RANGES.temp_agua_c.optHi} °C,
-      UV ${RANGES.uv_index.optLo}–${RANGES.uv_index.optHi}, TDS ≤ ${RANGES.tds_ppm.optHi} ppm,
-      profundidad ${RANGES.profundidad_m.optLo}–${RANGES.profundidad_m.optHi} m; r<sub>max</sub> = ${PARAMS.r_max}/día;
-      capacidad estimada ${st.capacidad_kg.toFixed(1)} kg. Se ajustan con datos de campo.`
+    $('#supuestos').innerHTML = t.assumptions({
+      tLo: RANGES.temp_agua_c.optLo, tHi: RANGES.temp_agua_c.optHi,
+      uvLo: RANGES.uv_index.optLo, uvHi: RANGES.uv_index.optHi,
+      tds: RANGES.tds_ppm.optHi,
+      dLo: RANGES.profundidad_m.optLo, dHi: RANGES.profundidad_m.optHi,
+      r: PARAMS.r_max, k: st.capacidad_kg.toFixed(1),
+    })
   }
 
   /** Foto elegida + tira de miniaturas con la serie de la cámara. */
   const renderVision = () => {
     const el = $('#vision')
     if (!vis.length) {
-      el.innerHTML = '<p class="muted">Sin fotos analizadas todavía.</p>'
+      el.innerHTML = `<p class="muted">${t.noPhotos}</p>`
       return
     }
     const i = fotoSel >= 0 && fotoSel < vis.length ? fotoSel : vis.length - 1
     const v = vis[i]
     el.innerHTML = `
       <figure class="foto">
-        <img src="${esc(photoUrl(v.foto))}" alt="Colonias de cushuro marcadas" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:'Foto no disponible'}))">
-        <figcaption>Cobertura ${v.cobertura_pct} % · ${v.biomasa_kg} kg <span class="muted small">· ${fmtTime(v.timestamp)}</span></figcaption>
+        <img src="${esc(photoUrl(v.foto))}" alt="${t.photoAlt}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:${esc(JSON.stringify(t.photoMissing))}}))">
+        <figcaption>${t.coverage} ${v.cobertura_pct} % · ${v.biomasa_kg} kg <span class="muted small">· ${fmtTime(v.timestamp)}</span></figcaption>
       </figure>
       ${
         vis.length > 1
@@ -218,20 +221,20 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
 }
 
 function sensorHtml(s?: SensorReading, prev?: SensorReading): string {
-  if (!s) return '<p class="muted">Sin lecturas del sensor todavía.</p>'
+  if (!s) return `<p class="muted">${t.noSensor}</p>`
   const isNew = prev != null && prev.timestamp !== s.timestamp
   const row = (label: string, v: number | undefined, unit: string, pv: number | undefined) => {
     const delta = isNew && v != null && pv != null && v !== pv ? (v > pv ? ' <i class="up">▲</i>' : ' <i class="down">▼</i>') : ''
     return `<dt>${label}</dt><dd${isNew ? ' class="flash"' : ''}>${v ?? '—'}${v != null && unit ? ` ${unit}` : ''}${delta}</dd>`
   }
   const ageMin = (Date.now() - Date.parse(s.timestamp)) / 60000
-  const age = ageMin < 1 ? 'hace segundos' : ageMin < 60 ? `hace ${Math.round(ageMin)} min` : fmtTime(s.timestamp)
+  const age = ageMin < 1 ? t.secondsAgo : ageMin < 60 ? t.minAgo(Math.round(ageMin)) : fmtTime(s.timestamp)
   return `<dl class="readings">
       ${row('TDS', s.tds_ppm, 'ppm', prev?.tds_ppm)}
-      ${row('T° agua', s.temp_agua_c, '°C', prev?.temp_agua_c)}
+      ${row(t.waterTemp, s.temp_agua_c, '°C', prev?.temp_agua_c)}
       ${row('pH', s.ph, '', prev?.ph)}
       ${row('UV', s.uv_index, '', prev?.uv_index)}
-    </dl><p class="muted small" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ' · <span class="stale">sin datos recientes</span>' : ''}</p>`
+    </dl><p class="muted small" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ' · <span class="stale">${t.stale}</span>' : ''}</p>`
 }
 
 function photoUrl(foto: string) {
@@ -265,20 +268,20 @@ function chartSvg(
   const xTicks = Array.from({ length: Math.floor(maxDay / step) + 1 }, (_, i) => i * step)
 
   return `
-  <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Curva de biomasa">
+  <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${t.curve}">
     ${yTicks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="axis" text-anchor="end">${v.toFixed(0)}</text>`).join('')}
-    ${xTicks.map((d) => `<text x="${x(d)}" y="${H - 10}" class="axis" text-anchor="middle">${d} d</text>`).join('')}
+    ${xTicks.map((d) => `<text x="${x(d)}" y="${H - 10}" class="axis" text-anchor="middle">${d} ${t.dayUnit}</text>`).join('')}
     <text x="${L}" y="${T - 2}" class="axis">kg</text>
     <line x1="${L}" x2="${W - R}" y1="${y(umbral)}" y2="${y(umbral)}" class="umbral"/>
-    <text x="${W - R}" y="${y(umbral) - 4}" class="axis" text-anchor="end">punto de cosecha</text>
+    <text x="${W - R}" y="${y(umbral) - 4}" class="axis" text-anchor="end">${t.harvestPoint}</text>
     <line x1="${L}" x2="${W - R}" y1="${y(K)}" y2="${y(K)}" class="cap"/>
     <path d="${path(pBase)}" class="base"/>
     <path d="${path(pScen)}" class="scen"/>
     ${vis.map((v) => `<circle cx="${x((Date.parse(v.timestamp) - t0) / DAY)}" cy="${y(v.biomasa_kg)}" r="5" class="real"><title>${v.biomasa_kg} kg</title></circle>`).join('')}
   </svg>
   <div class="chart-legend">
-    <span><i class="l-scen"></i>Escenario (sliders)</span>
-    <span><i class="l-base"></i>Proyección con la lectura real</span>
-    <span><i class="l-real"></i>Medido por la cámara</span>
+    <span><i class="l-scen"></i>${t.legendScenario}</span>
+    <span><i class="l-base"></i>${t.legendBase}</span>
+    <span><i class="l-real"></i>${t.legendReal}</span>
   </div>`
 }

@@ -46,3 +46,9 @@ Los rangos y parámetros en `RANGES` / `PARAMS` son **supuestos del modelo**.
 lecturas y series de fotos sintéticas con colonias marcadas, empaquetado en `public/demo/`. Sirve para grabar
 el video y el pitch aunque falten datos reales; las fechas se desplazan para que la última lectura sea "ahora".
 Se regenera con `node scripts/gen-demo.mjs` (determinista) y cumple los contratos de `data/contracts/`.
+
+## Idioma
+
+Español o inglés con el selector **ES · EN** de la barra, o con `?lang=en` / `?lang=es` en la URL (se recuerda en el
+navegador). Los textos están en `src/i18n.ts`; las recomendaciones usan `mensaje_es` / `mensaje_en` de
+`recommendations.json`. En inglés el IAC se muestra como **CSI** (Cushuro Suitability Index).

@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import type { Dataset } from '../data'
 import { cochaState, ESTADO_INFO } from '../model'
 import { esc, pct } from '../ui'
+import { IAC, t } from '../i18n'
 
 let map: L.Map | undefined
 
@@ -15,12 +16,12 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     <section class="map-screen">
       <div id="map" class="map"></div>
       <aside class="panel">
-        <h2>Cochas candidatas</h2>
-        <p class="muted">Bofedales de Salinas y Aguada Blanca, coloreados según el Índice de Aptitud Cushuro (IAC).</p>
+        <h2>${t.candidates}</h2>
+        <p class="muted">${t.mapIntro}</p>
         <div class="legend">
           ${Object.values(ESTADO_INFO).map((e) => `<span><i style="background:${e.color}"></i>${e.label}</span>`).join('')}
         </div>
-        ${states.length === 0 ? '<p class="muted">Aún no hay cochas en sites.json.</p>' : ''}
+        ${states.length === 0 ? `<p class="muted">${t.noSites}</p>` : ''}
         <ul class="cocha-list">
           ${states
             .sort((a, b) => b.iac - a.iac)
@@ -50,7 +51,7 @@ export function renderMap(root: HTMLElement, d: Dataset) {
   })
   const satGroup = L.layerGroup([satelite, etiquetas]).addTo(map)
   L.control
-    .layers({ Satélite: satGroup, Relieve: relieve }, undefined, { position: 'topright' })
+    .layers({ [t.satellite]: satGroup, [t.relief]: relieve }, undefined, { position: 'topright' })
     .addTo(map)
 
   const bounds: L.LatLngTuple[] = []
@@ -65,7 +66,7 @@ export function renderMap(root: HTMLElement, d: Dataset) {
       fillOpacity: 0.9,
     })
       .addTo(map)
-      .bindTooltip(`${esc(s.site.nombre)} · IAC ${pct(s.iac)}`)
+      .bindTooltip(`${esc(s.site.nombre)} · ${IAC} ${pct(s.iac)}`)
       .on('click', () => (location.hash = `#/cocha/${encodeURIComponent(s.site.cocha_id)}`))
   }
   if (bounds.length) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 12 })

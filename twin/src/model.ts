@@ -3,6 +3,7 @@
 
 import type { Dataset, Recommendation, SensorReading, Site } from './data'
 import { latestSensor, visionSeries } from './data'
+import { recMsg, t } from './i18n'
 
 /** Curva de aptitud trapezoidal: 0 fuera de [min,max], 1 entre [optLo,optHi], lineal en medio. */
 export interface Range {
@@ -155,9 +156,9 @@ export function cochaState(d: Dataset, site: Site): CochaState {
 }
 
 export const ESTADO_INFO = {
-  apta: { label: 'Apta', color: '#2e9d5b', msg: 'Buena cocha para sembrar o manejar' },
-  condicional: { label: 'Condicional', color: '#e0a526', msg: 'Mejorar: sombra, profundidad o flujo de agua' },
-  'no-apta': { label: 'No apta', color: '#c8473b', msg: 'Buscar otra cocha' },
+  apta: { label: t.apta, color: '#2e9d5b', msg: t.aptaMsg },
+  condicional: { label: t.condicional, color: '#e0a526', msg: t.condicionalMsg },
+  'no-apta': { label: t.noApta, color: '#c8473b', msg: t.noAptaMsg },
 } as const
 
 // ---------- Acción recomendada ----------
@@ -205,16 +206,16 @@ export function recommend(
   // 1. Mensajes del equipo de negocio (recommendations.json) que se cumplan.
   for (const r of recs) {
     if (r.codigo === 'OK') continue
-    if (evalCondition(r.condicion, vars)) actions.push({ codigo: r.codigo, titulo: r.mensaje_es, detalle: r.condicion, nivel: 'alerta' })
+    if (evalCondition(r.condicion, vars)) actions.push({ codigo: r.codigo, titulo: recMsg(r), detalle: r.condicion, nivel: 'alerta' })
   }
 
   // 2. Reglas del modelo.
   if (c.tds_ppm > RANGES.tds_ppm.optHi && !actions.some((a) => a.codigo.startsWith('TDS')))
-    actions.push({ codigo: 'RENOVAR_AGUA', titulo: 'Renovar agua', detalle: `TDS de ${c.tds_ppm} ppm: buscar flujo de agua limpia.`, nivel: f.tds_ppm < 0.3 ? 'alerta' : 'aviso' })
+    actions.push({ codigo: 'RENOVAR_AGUA', titulo: t.renewWater, detalle: t.renewWaterDet(c.tds_ppm), nivel: f.tds_ppm < 0.3 ? 'alerta' : 'aviso' })
   if (c.temp_agua_c > RANGES.temp_agua_c.optHi || c.uv_index > RANGES.uv_index.optHi)
-    actions.push({ codigo: 'SOMBRA', titulo: 'Aumentar sombra', detalle: 'Temperatura o radiación UV por encima del óptimo.', nivel: 'aviso' })
+    actions.push({ codigo: 'SOMBRA', titulo: t.shade, detalle: t.shadeDet, nivel: 'aviso' })
   if (c.profundidad_m < RANGES.profundidad_m.optLo)
-    actions.push({ codigo: 'PROFUNDIDAD', titulo: 'Subir el nivel del agua', detalle: `Profundidad de ${c.profundidad_m.toFixed(2)} m: la cocha puede secarse.`, nivel: 'aviso' })
+    actions.push({ codigo: 'PROFUNDIDAD', titulo: t.depth, detalle: t.depthDet(c.profundidad_m.toFixed(2)), nivel: 'aviso' })
 
   // 3. Cosecha.
   const umbral = PARAMS.umbral_cosecha * capacidad_kg
@@ -222,8 +223,8 @@ export function recommend(
     const kg = biomasa_kg * PARAMS.fraccion_cosecha
     actions.push({
       codigo: 'COSECHAR',
-      titulo: `Cosechar ${kg.toFixed(1)} kg`,
-      detalle: `Cosechar el ${PARAMS.fraccion_cosecha * 100} % y dejar el ${100 - PARAMS.fraccion_cosecha * 100} % para que se regenere.`,
+      titulo: t.harvest(kg.toFixed(1)),
+      detalle: t.harvestDet(PARAMS.fraccion_cosecha * 100, 100 - PARAMS.fraccion_cosecha * 100),
       nivel: 'ok',
     })
   } else {
@@ -231,14 +232,14 @@ export function recommend(
     const dia = serie.findIndex((b) => b >= umbral)
     actions.push(
       dia > 0
-        ? { codigo: 'ESPERAR', titulo: `Esperar ${dia < 14 ? `${dia} días` : `${Math.round(dia / 7)} semanas`}`, detalle: `Se proyecta llegar a ${umbral.toFixed(1)} kg (punto de cosecha).`, nivel: 'ok' }
-        : { codigo: 'SIN_CRECIMIENTO', titulo: 'Sin crecimiento proyectado', detalle: 'Con estas condiciones no se llega al punto de cosecha en un año.', nivel: 'alerta' },
+        ? { codigo: 'ESPERAR', titulo: dia < 14 ? t.waitDays(dia) : t.waitWeeks(Math.round(dia / 7)), detalle: t.waitDet(umbral.toFixed(1)), nivel: 'ok' }
+        : { codigo: 'SIN_CRECIMIENTO', titulo: t.noGrowth, detalle: t.noGrowthDet, nivel: 'alerta' },
     )
   }
 
   if (!actions.some((a) => a.nivel !== 'ok')) {
     const ok = recs.find((r) => r.codigo === 'OK')
-    if (ok) actions.unshift({ codigo: 'OK', titulo: ok.mensaje_es, detalle: '', nivel: 'ok' })
+    if (ok) actions.unshift({ codigo: 'OK', titulo: recMsg(ok), detalle: '', nivel: 'ok' })
   }
   return actions
 }

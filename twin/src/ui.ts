@@ -3,5 +3,7 @@ export const esc = (s: unknown) =>
 
 export const pct = (x: number | null) => (x == null ? '—' : `${Math.round(x * 100)}`)
 
+import { LANG } from './i18n'
+
 export const fmtTime = (iso?: string) =>
-  iso ? new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : '—'
+  iso ? new Date(iso).toLocaleString(LANG === 'en' ? 'en-US' : 'es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : '—'

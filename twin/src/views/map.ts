@@ -38,10 +38,20 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     </section>`
 
   map = L.map(root.querySelector<HTMLElement>('#map')!, { zoomControl: true })
-  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    attribution: '© OpenStreetMap, SRTM | © OpenTopoMap',
-  }).addTo(map)
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services'
+  const satelite = L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, {
+    maxZoom: 18,
+    attribution: 'Imágenes © Esri, Maxar, Earthstar Geographics y la comunidad de usuarios GIS',
+  })
+  const etiquetas = L.tileLayer(`${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 })
+  const relieve = L.tileLayer(`${ESRI}/World_Topo_Map/MapServer/tile/{z}/{y}/{x}`, {
+    maxZoom: 18,
+    attribution: 'Mapa © Esri y colaboradores',
+  })
+  const satGroup = L.layerGroup([satelite, etiquetas]).addTo(map)
+  L.control
+    .layers({ Satélite: satGroup, Relieve: relieve }, undefined, { position: 'topright' })
+    .addTo(map)
 
   const bounds: L.LatLngTuple[] = []
   for (const s of states) {

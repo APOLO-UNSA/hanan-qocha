@@ -1,0 +1,14 @@
+[
+  {"cocha_id":"DEMO-01","nombre":"Cocha demo 01 · sector norte","lat":-15.781,"lon":-71.334,"altitud_m":4385,"indice_satelital":0.84},
+  {"cocha_id":"DEMO-02","nombre":"Cocha demo 02 · sector norte","lat":-15.803,"lon":-71.298,"altitud_m":4402,"indice_satelital":0.78},
+  {"cocha_id":"DEMO-03","nombre":"Cocha demo 03 · sector norte","lat":-15.842,"lon":-71.362,"altitud_m":4350,"indice_satelital":0.71},
+  {"cocha_id":"DEMO-04","nombre":"Cocha demo 04 · sector centro","lat":-15.921,"lon":-71.215,"altitud_m":4420,"indice_satelital":0.66},
+  {"cocha_id":"DEMO-05","nombre":"Cocha demo 05 · sector centro","lat":-15.958,"lon":-71.268,"altitud_m":4310,"indice_satelital":0.58},
+  {"cocha_id":"DEMO-06","nombre":"Cocha demo 06 · sector centro","lat":-16.012,"lon":-71.181,"altitud_m":4280,"indice_satelital":0.74},
+  {"cocha_id":"DEMO-07","nombre":"Cocha demo 07 · sector centro","lat":-16.054,"lon":-71.322,"altitud_m":4190,"indice_satelital":0.47},
+  {"cocha_id":"DEMO-08","nombre":"Cocha demo 08 · sector sur","lat":-16.118,"lon":-71.243,"altitud_m":4150,"indice_satelital":0.52},
+  {"cocha_id":"DEMO-09","nombre":"Cocha demo 09 · sector sur","lat":-16.196,"lon":-71.395,"altitud_m":4300,"indice_satelital":0.62},
+  {"cocha_id":"DEMO-10","nombre":"Cocha demo 10 · sector sur","lat":-16.261,"lon":-71.152,"altitud_m":3980,"indice_satelital":0.28},
+  {"cocha_id":"DEMO-11","nombre":"Cocha demo 11 · sector sur","lat":-16.318,"lon":-71.288,"altitud_m":4060,"indice_satelital":0.36},
+  {"cocha_id":"DEMO-12","nombre":"Cocha demo 12 · sector norte","lat":-15.744,"lon":-71.251,"altitud_m":4460,"indice_satelital":0.69}
+]

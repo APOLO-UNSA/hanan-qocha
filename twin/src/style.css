@@ -127,3 +127,12 @@ h3 { margin-top: 1.75rem; }
 .ruta li.aptitud b::before { content: '✓ '; color: var(--c); }
 .ruta li.aptitud.condicional b::before { content: '! '; }
 .ruta li.aptitud.no-apta b::before { content: '✕ '; }
+
+/* Demo y serie de fotos */
+.src a { color: #fff; }
+.demo-banner { background: #fff3c4; color: #6b5200; text-align: center; font-size: .85rem; padding: .3rem 1rem; }
+.thumbs { display: flex; gap: .4rem; overflow-x: auto; margin-top: .6rem; padding-bottom: .2rem; }
+.thumbs button { flex: 0 0 64px; padding: 0; border: 2px solid transparent; border-radius: 6px; background: none; cursor: pointer; position: relative; }
+.thumbs button.sel { border-color: var(--brand); }
+.thumbs img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; }
+.thumbs span { position: absolute; bottom: 2px; right: 3px; font-size: .65rem; color: #fff; background: #0008; border-radius: 3px; padding: 0 3px; }

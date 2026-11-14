@@ -39,3 +39,10 @@ Si un archivo falta o está roto, la app lo trata como vacío y sigue funcionand
   (variables: `tds_ppm`, `temp_agua_c`, `uv_index`, `profundidad_m`, `biomasa_kg`, `capacidad_kg`, `biomasa_pct`).
 
 Los rangos y parámetros en `RANGES` / `PARAMS` son **supuestos del modelo**.
+
+## Modo demo
+
+`?datos=demo` en la URL (o el enlace "ver demo" de la barra) carga un conjunto **ficticio** de 12 cochas,
+lecturas y series de fotos sintéticas con colonias marcadas, empaquetado en `public/demo/`. Sirve para grabar
+el video y el pitch aunque falten datos reales; las fechas se desplazan para que la última lectura sea "ahora".
+Se regenera con `node scripts/gen-demo.mjs` (determinista) y cumple los contratos de `data/contracts/`.

@@ -40,11 +40,29 @@ export interface Dataset {
   recommendations: Recommendation[]
 }
 
-export const DATA_SOURCE = (import.meta.env.VITE_DATA_SOURCE as string | undefined) ?? 'processed'
+export type DataSource = 'processed' | 'live' | 'mock' | 'demo'
+const SOURCES: DataSource[] = ['processed', 'live', 'mock', 'demo']
+
+/** Fuente de datos: ?datos=demo en la URL manda; si no, VITE_DATA_SOURCE; si no, processed. */
+export const DEFAULT_SOURCE: DataSource = SOURCES.includes(import.meta.env.VITE_DATA_SOURCE)
+  ? import.meta.env.VITE_DATA_SOURCE
+  : 'processed'
+const fromUrl = new URLSearchParams(location.search).get('datos') as DataSource | null
+export const DATA_SOURCE: DataSource = fromUrl && SOURCES.includes(fromUrl) ? fromUrl : DEFAULT_SOURCE
+
+/** URL con la fuente cambiada (conserva el resto de la URL). */
+export function sourceUrl(src: DataSource): string {
+  const u = new URL(location.href)
+  if (src === DEFAULT_SOURCE) u.searchParams.delete('datos')
+  else u.searchParams.set('datos', src)
+  return u.toString()
+}
 
 async function load<T>(name: string): Promise<T[]> {
+  // demo: conjunto ficticio empaquetado en twin/public/demo (para video y pitch).
+  const dir = DATA_SOURCE === 'demo' ? 'demo' : 'data'
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}data/${name}.json`, { cache: 'no-store' })
+    const res = await fetch(`${import.meta.env.BASE_URL}${dir}/${name}.json`, { cache: 'no-store' })
     if (!res.ok) return []
     const json = await res.json()
     return Array.isArray(json) ? json : []
@@ -61,7 +79,19 @@ export async function loadDataset(): Promise<Dataset> {
     load<VisionResult>('vision'),
     load<Recommendation>('recommendations'),
   ])
-  return { sites, sensor, vision, recommendations }
+  const d = { sites, sensor, vision, recommendations }
+  if (DATA_SOURCE === 'demo') shiftToNow(d)
+  return d
+}
+
+/** En la demo, desplaza todas las fechas para que la última lectura sea "ahora" (así nunca sale "sin datos recientes"). */
+function shiftToNow(d: Dataset) {
+  const last = Math.max(...d.sensor.map((s) => Date.parse(s.timestamp)))
+  if (!Number.isFinite(last)) return
+  const off = Date.now() - 60_000 - last
+  const shift = (o: { timestamp: string }) => (o.timestamp = new Date(Date.parse(o.timestamp) + off).toISOString())
+  d.sensor.forEach(shift)
+  d.vision.forEach(shift)
 }
 
 const byTime = (a: { timestamp: string }, b: { timestamp: string }) =>

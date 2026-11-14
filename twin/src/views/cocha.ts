@@ -45,7 +45,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   let base = conditionsFrom(st.sensor)
   const cond: Conditions = { ...base }
   let touched = false // el productor movió algún slider
-  const lastVis = vis.at(-1)
+  let fotoSel = -1 // índice de la foto elegida en la serie (-1 = la última)
 
   root.innerHTML = `
     <section class="page">
@@ -71,15 +71,8 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
           <div id="sensor"></div>
         </div>
         <div class="card">
-          <h4>Visión artificial</h4>
-          ${
-            lastVis
-              ? `<figure class="foto">
-                  <img src="${esc(photoUrl(lastVis.foto))}" alt="Colonias de cushuro" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:'Foto no disponible'}))">
-                  <figcaption>Cobertura ${lastVis.cobertura_pct} % · ${lastVis.biomasa_kg} kg</figcaption>
-                </figure><p class="muted small">${fmtTime(lastVis.timestamp)}</p>`
-              : '<p class="muted">Sin fotos analizadas todavía.</p>'
-          }
+          <h4>Visión artificial <span class="muted small">colonias marcadas</span></h4>
+          <div id="vision"></div>
         </div>
         <div class="card wide">
           <h4>Curva de biomasa <span class="muted small">proyectada vs. real</span></h4>
@@ -130,12 +123,45 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       <div><span>In situ</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>
       <div><span>Visión</span><b>${pct(st.indice_vision)}</b><small>×0,2</small></div>`
     $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor)
+    renderVision()
     $('#supuestos').innerHTML = `
       Supuestos del modelo: óptimos T ${RANGES.temp_agua_c.optLo}–${RANGES.temp_agua_c.optHi} °C,
       UV ${RANGES.uv_index.optLo}–${RANGES.uv_index.optHi}, TDS ≤ ${RANGES.tds_ppm.optHi} ppm,
       profundidad ${RANGES.profundidad_m.optLo}–${RANGES.profundidad_m.optHi} m; r<sub>max</sub> = ${PARAMS.r_max}/día;
       capacidad estimada ${st.capacidad_kg.toFixed(1)} kg. Se ajustan con datos de campo.`
   }
+
+  /** Foto elegida + tira de miniaturas con la serie de la cámara. */
+  const renderVision = () => {
+    const el = $('#vision')
+    if (!vis.length) {
+      el.innerHTML = '<p class="muted">Sin fotos analizadas todavía.</p>'
+      return
+    }
+    const i = fotoSel >= 0 && fotoSel < vis.length ? fotoSel : vis.length - 1
+    const v = vis[i]
+    el.innerHTML = `
+      <figure class="foto">
+        <img src="${esc(photoUrl(v.foto))}" alt="Colonias de cushuro marcadas" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:'Foto no disponible'}))">
+        <figcaption>Cobertura ${v.cobertura_pct} % · ${v.biomasa_kg} kg <span class="muted small">· ${fmtTime(v.timestamp)}</span></figcaption>
+      </figure>
+      ${
+        vis.length > 1
+          ? `<div class="thumbs" role="list">${vis
+              .map(
+                (x, k) => `<button type="button" data-k="${k}" class="${k === i ? 'sel' : ''}" title="${esc(fmtTime(x.timestamp))} · ${x.biomasa_kg} kg">
+                  <img src="${esc(photoUrl(x.foto))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${x.biomasa_kg}</span></button>`,
+              )
+              .join('')}</div>`
+          : ''
+      }`
+  }
+  root.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.thumbs button')
+    if (!b) return
+    fotoSel = Number(b.dataset.k)
+    renderVision()
+  })
 
   /** Partes que dependen de los sliders (curva y acciones). */
   const renderScenario = () => {
@@ -220,7 +246,7 @@ function chartSvg(
   base: Conditions,
   cond: Conditions,
 ): string {
-  const W = 640, H = 260, L = 44, R = 12, T = 12, B = 30
+  const W = 640, H = 260, L = 44, R = 24, T = 12, B = 30
   const t0 = vis.length ? Date.parse(vis[0].timestamp) : Date.now()
   const startDay = vis.length ? Math.round((Date.parse(vis.at(-1)!.timestamp) - t0) / DAY) : 0
   const maxDay = startDay + HORIZON_DAYS
@@ -235,7 +261,8 @@ function chartSvg(
   const umbral = PARAMS.umbral_cosecha * K
 
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * yMax)
-  const xTicks = Array.from({ length: 7 }, (_, i) => Math.round((i * maxDay) / 6))
+  const step = maxDay > 60 ? 7 * Math.ceil(maxDay / 6 / 7) : 15 // semanas si el eje es largo
+  const xTicks = Array.from({ length: Math.floor(maxDay / step) + 1 }, (_, i) => i * step)
 
   return `
   <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Curva de biomasa">

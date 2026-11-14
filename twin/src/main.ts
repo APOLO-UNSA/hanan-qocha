@@ -1,5 +1,5 @@
 import './style.css'
-import { DATA_SOURCE, loadDataset, type Dataset } from './data'
+import { DATA_SOURCE, DEFAULT_SOURCE, loadDataset, sourceUrl, type Dataset } from './data'
 import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
 
@@ -10,8 +10,10 @@ const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
   <header class="topbar">
     <a href="#/" class="brand"><img src="${import.meta.env.BASE_URL}favicon.svg" alt=""> Hanan Qocha <small>Qocha Twin</small></a>
-    <span class="src" title="Fuente de datos">datos: ${DATA_SOURCE}</span>
+    <span class="src" title="Fuente de datos">datos: ${DATA_SOURCE} ·
+      <a href="${sourceUrl(DATA_SOURCE === 'demo' ? DEFAULT_SOURCE : 'demo')}">${DATA_SOURCE === 'demo' ? 'salir de la demo' : 'ver demo'}</a></span>
   </header>
+  ${DATA_SOURCE === 'demo' ? '<div class="demo-banner">Datos de demostración: cochas, lecturas y fotos ficticias.</div>' : ''}
   <main id="view"></main>`
 const view = app.querySelector<HTMLElement>('#view')!
 

@@ -1,0 +1,6 @@
+[
+  {"codigo":"TDS_ALTO","condicion":"tds_ppm > 150","mensaje_es":"El agua tiene muchos sólidos disueltos; evita cosechar aquí por ahora.","mensaje_en":"Water has high dissolved solids; avoid harvesting here for now."},
+  {"codigo":"AGUA_CALIDA","condicion":"temp_agua_c > 17","mensaje_es":"El agua está muy tibia: da sombra con champas o paja en las horas de sol.","mensaje_en":"Water is too warm: shade the pond with sod or straw during sunny hours."},
+  {"codigo":"PH_ALTO","condicion":"ph > 8.5","mensaje_es":"El agua es muy alcalina; conviene llevar una muestra a analizar.","mensaje_en":"Water is too alkaline; take a sample for lab analysis."},
+  {"codigo":"OK","condicion":"tds_ppm <= 150","mensaje_es":"Las condiciones son buenas para el cushuro.","mensaje_en":"Conditions are good for cushuro."}
+]

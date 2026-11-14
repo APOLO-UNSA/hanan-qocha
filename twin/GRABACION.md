@@ -54,3 +54,16 @@ Todas las URL llevan `video=1` (modo presentación) y `lang=en` (el video va en 
 ## Después de grabar
 - Pásale los clips a Jefry con el nombre de la toma (`pax-1-curva.mp4`, etc.).
 - Si usaste la demo, avísale para que el video o el pitch lo mencione ("prototype with simulated data").
+
+## Tomas grabadas automáticamente
+
+`twin/scripts/grabar-tomas.mjs` graba estas mismas tomas como **MP4 1920×1080 a 30 fps**, con un cursor visible que
+mueve el slider, hace clic en las miniaturas y en la cocha del mapa. Usa Chrome sin ventana (protocolo DevTools) y ffmpeg:
+
+```bash
+node twin/scripts/grabar-tomas.mjs ../tomas-gemelo                       # app publicada, datos de demo, en inglés
+node twin/scripts/grabar-tomas.mjs ../tomas-gemelo "https://apolo-unsa.github.io/hanan-qocha/?lang=en&video=1"   # datos reales
+```
+
+Salen `pax-1-curva.mp4`, `pax-2-cosecha.mp4`, `pax-3-colonias.mp4` y `extra-mapa-vuelo.mp4`. En modo presentación, en
+pantallas anchas, la curva queda junto a "What if…?" y la acción para que todo entre en una toma.

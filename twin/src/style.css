@@ -425,3 +425,11 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
 }
 /* La curva espera a estar a la vista para dibujarse */
 .card.reveal:not(.in) .chart.intro *, .card.reveal:not(.in) .chart.intro { animation-play-state: paused !important; }
+
+/* Modo presentación: la curva junto a "¿Qué pasa si…?" y la acción, para que quepan en una toma */
+@media (min-width: 1100px) {
+  .video .twin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); align-items: start; }
+  .video .twin-grid .k-curva { grid-column: 1; grid-row: span 2; }
+  .video .twin-grid .k-whatif, .video .twin-grid .k-accion { grid-column: 2; }
+  .video .page { max-width: 1560px; }
+}

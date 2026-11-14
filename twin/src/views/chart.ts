@@ -104,7 +104,7 @@ export function chartSvg(
     <line x1="${L}" x2="${W - R}" y1="${y(K)}" y2="${y(K)}" class="cap"/>
     <text x="${W - R - 4}" y="${y(K) - 6}" class="cap-lbl" text-anchor="end">${t.capacity(K.toFixed(1))}</text>
     <line x1="${L}" x2="${W - R}" y1="${y(umbral)}" y2="${y(umbral)}" class="umbral"/>
-    <text x="${W - R - 4}" y="${y(umbral) + 15}" class="umbral-lbl" text-anchor="end">${t.harvestPoint} · ${umbral.toFixed(1)} kg</text>
+    <text x="${W - R - 4}" y="${y(umbral) + 15}" class="umbral-lbl" text-anchor="end">${t.harvestPoint}: ${umbral.toFixed(1)} kg</text>
 
     <rect x="${x(startDay)}" y="${T}" width="${W - R - x(startDay)}" height="${H - B - T}" class="futuro"/>
     <line x1="${x(startDay)}" x2="${x(startDay)}" y1="${T - 6}" y2="${H - B}" class="hoy"/>

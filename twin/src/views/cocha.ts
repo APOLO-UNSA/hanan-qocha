@@ -57,7 +57,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       <a class="back" href="#/">${t.backToMap}</a>
       <header class="hero">
         <div>
-          <p class="kicker">${t.pondKicker} · ${esc(site.cocha_id)}</p>
+          <p class="kicker">${t.pondKicker} <span class="code">${esc(site.cocha_id)}</span></p>
           <h2>${esc(site.nombre)}</h2>
           <p class="meta"><span><b>▲</b> ${site.altitud_m} ${t.masl}</span><span>${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</span></p>
           <p id="estado-msg" class="estado-pill"></p>
@@ -65,10 +65,10 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
         <div class="ring-wrap" id="iac-ring"></div>
       </header>
 
-      <div class="sec"><span class="num">01</span><h3>${t.route}</h3></div>
+      <div class="sec"><h3>${t.route}</h3></div>
       <ol id="ruta" class="trail"></ol>
 
-      <div class="sec"><span class="num">02</span><h3>${t.twin}</h3></div>
+      <div class="sec"><h3>${t.twin}</h3></div>
       <div class="twin-grid">
         <div class="card k-sensor">
           <h4>${t.lastReading} ${live ? `<span class="live" title="${t.liveTitle(pollSeconds)}">${t.live}</span>` : ''}</h4>
@@ -139,7 +139,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       const cls = i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''
       const node = i < st.etapa ? '✓' : String(i + 1)
       if (i > 0) return `<li class="${cls}" style="--i:${i}"><span class="node">${node}</span><b>${e.t}</b><small>${e.s}</small></li>`
-      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color};--i:0"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
+      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color};--i:0"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)}, ${t.stageFitSub}</small></li>`
     }).join('')
     $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id))
     renderVision()
@@ -164,13 +164,13 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     el.innerHTML = `
       <figure class="foto">
         <img src="${esc(photoUrl(v.foto))}" alt="${t.photoAlt}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:${esc(JSON.stringify(t.photoMissing))}}))">
-        <figcaption><b>${v.biomasa_kg} kg · ${t.coverage.toLowerCase()} ${v.cobertura_pct} %</b><span>${fmtTime(v.timestamp)}</span></figcaption>
+        <figcaption><b>${v.biomasa_kg} kg <em>${t.coverage.toLowerCase()} ${v.cobertura_pct} %</em></b><span>${fmtTime(v.timestamp)}</span></figcaption>
       </figure>
       ${
         vis.length > 1
           ? `<div class="thumbs" role="list">${vis
               .map(
-                (x, k) => `<button type="button" data-k="${k}" class="${k === i ? 'sel' : ''}" title="${esc(fmtTime(x.timestamp))} · ${x.biomasa_kg} kg">
+                (x, k) => `<button type="button" data-k="${k}" class="${k === i ? 'sel' : ''}" title="${esc(fmtTime(x.timestamp))}, ${x.biomasa_kg} kg">
                   <img src="${esc(photoUrl(x.foto))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${x.biomasa_kg}</span></button>`,
               )
               .join('')}</div>`
@@ -283,7 +283,7 @@ function sensorHtml(s?: SensorReading, prev?: SensorReading): string {
       ${gauge(t.waterTemp, s.temp_agua_c, '°C', RANGES.temp_agua_c, 30, isNew, delta(s.temp_agua_c, prev?.temp_agua_c))}
       ${gauge('UV', s.uv_index, '', RANGES.uv_index, 18, isNew, delta(s.uv_index, prev?.uv_index))}
       ${gauge('pH', s.ph, '', null, 14, isNew, delta(s.ph, prev?.ph))}
-    </div><p class="age" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? ` · <span class="stale">${t.stale}</span>` : ''}</p>`
+    </div><p class="age" title="${esc(s.timestamp)}">${age}${ageMin > 30 && ageMin < 60 * 24 * 365 ? `, <span class="stale">${t.stale}</span>` : ''}</p>`
 }
 
 /** Línea bajo la curva: cómo la cámara recalibró el modelo. */

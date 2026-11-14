@@ -43,7 +43,7 @@ export function iacRing(parts: { valor: number | null; peso: number; color: stri
       return seg
     })
     .join('')
-  return `<svg class="ring" viewBox="0 0 160 160" width="${size}" height="${size}" role="img" aria-label="${sigla} ${Math.round(total * 100)} · ${etiqueta}">
+  return `<svg class="ring" viewBox="0 0 160 160" width="${size}" height="${size}" role="img" aria-label="${sigla} ${Math.round(total * 100)}, ${etiqueta}">
     ${arcs}
     <circle r="46" cx="80" cy="80" fill="${color}"/>
     <text x="80" y="62" text-anchor="middle" class="ring-lbl">${sigla}</text>

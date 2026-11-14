@@ -1,218 +1,311 @@
 """Dibuja las fotos SINTÉTICAS de la demo (public/demo/fotos/*.jpg) a partir de public/demo/vision.json.
 
-Imitan una toma cenital de la cámara Qocha Ñawi sobre una cocha de bofedal:
-  - agua clara con fondo de turba, reflejo del cielo y ondas;
-  - orilla de bofedal (cojines de Distichia, ichu seco, barro húmedo);
-  - colonias de cushuro (Nostoc sphaericum): esferas gelatinosas verde oliva, brillantes y con sombra;
-  - capa de la visión artificial: contorno de cada colonia detectada y datos de la toma.
+Simulan la cámara Qocha Ñawi montada en un poste a la orilla, mirando la cocha en diagonal:
+  1. Se arma la cocha vista desde arriba: agua con fondo de turba, orilla de barro, cojines de bofedal e ichu,
+     y colonias de cushuro (Nostoc sphaericum) irregulares, translúcidas, en tonos oliva a pardo.
+  2. Se proyecta con perspectiva (homografía) a la vista oblicua de la cámara; arriba quedan la orilla lejana,
+     los cerros nevados y el cielo, con neblina de distancia y desenfoque de lo lejano.
+  3. El agua refleja el cielo más hacia el fondo y tiene destellos de sol.
+  4. Óptica de cámara: viñeta, aberración cromática, ruido de sensor y compresión JPG.
+  5. Capa de visión artificial como la de una herramienta real: máscara de segmentación, contornos, cajas con
+     su confianza y un panel con detecciones, cobertura y biomasa estimada.
 Cada cocha es la MISMA laguna en el tiempo: las colonias persisten, crecen y aparecen nuevas.
 Uso: python twin/scripts/gen-fotos.py   (requiere numpy y Pillow). Correr después de gen-demo.mjs.
 """
 import json
 import math
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 DEMO = Path(__file__).resolve().parent.parent / "public" / "demo"
-W, H = 960, 720
-FUENTE = None
-for f in ("C:/Windows/Fonts/consola.ttf", "C:/Windows/Fonts/cour.ttf"):
-    try:
-        FUENTE = lambda s, f=f: ImageFont.truetype(f, s)
-        FUENTE(12)
-        break
-    except OSError:
-        FUENTE = None
-if FUENTE is None:
-    FUENTE = lambda s: ImageFont.load_default(s)
+OUT_W, OUT_H = 960, 720          # tamaño final
+CW, CH = 1440, 1080              # lienzo de la cámara (se reduce al final: antialias)
+WW = WH = 1700                   # mundo visto desde arriba
+HORIZONTE = 150                  # fila del horizonte en el lienzo de la cámara (cámara baja, mirando a la cocha)
 
 
-def ruido(rng, w, h, escalas=(4, 8, 16, 32, 64), pesos=None):
-    """Ruido fractal suave (suma de rejillas aleatorias ampliadas)."""
-    pesos = pesos or [1 / (i + 1) ** 1.2 for i in range(len(escalas))]
+def fuente(tam, negrita=False):
+    for f in (("C:/Windows/Fonts/consolab.ttf" if negrita else "C:/Windows/Fonts/consola.ttf"), "C:/Windows/Fonts/cour.ttf"):
+        try:
+            return ImageFont.truetype(f, tam)
+        except OSError:
+            pass
+    return ImageFont.load_default(tam)
+
+
+def ruido(rng, w, h, escalas, pesos=None):
+    pesos = pesos or [1 / (i + 1) for i in range(len(escalas))]
     z = np.zeros((h, w), np.float32)
     for e, p in zip(escalas, pesos):
-        g = rng.random((max(2, h * e // w), e)).astype(np.float32)
-        img = Image.fromarray((g * 255).astype(np.uint8)).resize((w, h), Image.BICUBIC)
-        z += p * (np.asarray(img, np.float32) / 255)
+        g = rng.random((max(2, int(h * e / w)), e)).astype(np.float32)
+        z += p * np.asarray(Image.fromarray((g * 255).astype(np.uint8)).resize((w, h), Image.BICUBIC), np.float32) / 255
     z -= z.min()
     return z / max(z.max(), 1e-6)
 
 
 def mezcla(a, b, t):
-    t = t[..., None]
-    return a * (1 - t) + b * t
+    return a * (1 - t[..., None]) + b * t[..., None]
 
 
-def color(c):
-    return np.array(c, np.float32)
+def C(*v):
+    return np.array(v, np.float32)
 
 
-def escena(rng):
-    """Fondo de la cocha: devuelve (imagen float HxWx3, máscara de agua HxW, centro, radios)."""
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    cx, cy = W * rng.uniform(0.47, 0.53), H * rng.uniform(0.48, 0.54)
-    rx, ry = W * rng.uniform(0.40, 0.44), H * rng.uniform(0.39, 0.43)
+# ---------------------------------------------------------------- 1. el mundo visto desde arriba
+def mundo(rng, con_agua=True):
+    yy, xx = np.mgrid[0:WH, 0:WW].astype(np.float32)
+    cx, cy, rx, ry = WW * 0.5, WH * 0.55, WW * 0.40, WH * 0.36
     ang = np.arctan2((yy - cy) / ry, (xx - cx) / rx)
     dist = np.hypot((xx - cx) / rx, (yy - cy) / ry)
-    borde = 1 + 0.07 * np.sin(3 * ang + rng.uniform(0, 6)) + 0.05 * np.sin(5 * ang + rng.uniform(0, 6)) + 0.03 * np.sin(9 * ang)
-    borde += 0.06 * (ruido(rng, W, H, (6, 12, 24)) - 0.5)
-    agua = np.clip((borde - dist) * 18, 0, 1)  # 1 dentro, transición suave en la orilla
+    borde = 1 + 0.08 * np.sin(3 * ang + rng.uniform(0, 6)) + 0.05 * np.sin(5 * ang + rng.uniform(0, 6))
+    borde += 0.07 * (ruido(rng, WW, WH, (6, 12, 24)) - 0.5)
+    agua = np.clip((borde - dist) * 22, 0, 1) if con_agua else np.zeros_like(dist)
 
-    # Bofedal: cojines verdes con manchas amarillentas de ichu y sombras
-    n1 = ruido(rng, W, H, (24, 48, 96, 192), [1, 0.8, 0.6, 0.5])
-    n2 = ruido(rng, W, H, (8, 16, 32))
-    cojin = mezcla(color((52, 82, 34)), color((112, 132, 52)), n1)
-    cojin = mezcla(cojin, color((176, 152, 86)), np.clip((n2 - 0.62) * 3.2, 0, 1))  # ichu seco
-    cojin *= (0.78 + 0.32 * ruido(rng, W, H, (96, 192, 384), [1, 1, 1]))[..., None]  # textura fina
-    # Orilla: barro húmedo oscuro
-    orilla = np.clip(1 - np.abs(dist - borde) * 9, 0, 1) ** 1.5
-    tierra = mezcla(cojin, color((58, 46, 32)), orilla * 0.85)
-
-    # Agua: fondo de turba visto a través del agua, más hondo al centro
-    turba = mezcla(color((54, 46, 30)), color((92, 92, 52)), ruido(rng, W, H, (6, 12, 24, 48)))
+    # orilla y bofedal
+    n1 = ruido(rng, WW, WH, (32, 64, 128, 256), [1, .8, .6, .5])
+    suelo = mezcla(C(48, 74, 32), C(104, 122, 50), n1)
+    suelo = mezcla(suelo, C(150, 132, 84), np.clip((ruido(rng, WW, WH, (8, 16, 32)) - .6) * 3, 0, 1))
+    orilla = np.clip(1 - np.abs(dist - borde) * 7, 0, 1) ** 1.4 * (1 if con_agua else 0)
+    suelo = mezcla(suelo, C(62, 50, 36), orilla * .9)
+    # fondo de la cocha: turba, piedras y algas vistos a través del agua
+    turba = mezcla(C(58, 48, 30), C(98, 96, 56), ruido(rng, WW, WH, (8, 16, 32, 64, 128)))
     prof = np.clip(1 - dist / borde, 0, 1)
-    tinte = mezcla(color((70, 120, 112)), color((22, 62, 70)), prof ** 0.8)
-    aguaimg = turba * 0.42 + tinte * 0.58
-    # cáusticas suaves y reflejo del cielo
-    caust = ruido(rng, W, H, (32, 64, 128), [1, 0.7, 0.5])
-    aguaimg += (np.clip(caust - 0.6, 0, 1) * 40)[..., None]
-    cielo = np.exp(-(((xx - W * 0.28) / (W * 0.30)) ** 2 + ((yy - H * 0.30) / (H * 0.22)) ** 2))
-    aguaimg = mezcla(aguaimg, color((190, 215, 230)), cielo * 0.28)
-    viento = np.asarray(Image.fromarray((rng.random((H // 3, 24)) * 255).astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32) / 255
-    aguaimg += ((viento - 0.5) * 9)[..., None]
-
-    img = mezcla(tierra, aguaimg, agua)
+    aguac = mezcla(turba * .55 + C(30, 70, 72) * .45, C(18, 44, 52), prof ** .7)
+    img = mezcla(suelo, aguac, agua)
     img = cojines(rng, img, agua)
-    return img, agua, (cx, cy, rx, ry, borde, dist)
+    return img, agua, (cx, cy, rx, ry)
 
 
 def cojines(rng, arr, agua):
-    """Cojines de bofedal (Distichia) e ichu: miles de matas pequeñas con luz y sombra, fuera del agua."""
-    img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    im = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
+    capa = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(capa)
-    for _ in range(5200):
-        x, y = rng.uniform(0, W), rng.uniform(0, H)
-        if agua[int(y) % H, int(x) % W] > 0.05:
+    for _ in range(9000):
+        x, y = rng.uniform(0, WW), rng.uniform(0, WH)
+        if agua[int(y) % WH, int(x) % WW] > .05:
             continue
-        r = rng.uniform(2.5, 8.5)
-        if rng.random() < 0.18:  # mata de ichu: trazos secos
-            c = tuple(int(v) for v in rng.uniform((150, 125, 70), (205, 180, 110)))
-            for _ in range(5):
-                a = rng.uniform(-2.4, -0.7)
-                d.line([x, y, x + math.cos(a) * r * 2.2, y + math.sin(a) * r * 2.2], fill=c + (170,), width=1)
+        r = rng.uniform(4, 13)
+        if rng.random() < .2:  # matas de ichu
+            c = tuple(int(v) for v in rng.uniform((150, 128, 74), (210, 186, 118)))
+            for _ in range(7):
+                a = rng.uniform(-2.5, -.6)
+                d.line([x, y, x + math.cos(a) * r * 2.6, y + math.sin(a) * r * 2.6], fill=c + (180,), width=2)
             continue
         g = rng.uniform(0, 1)
-        base = (int(40 + 60 * g), int(70 + 60 * g), int(26 + 22 * g))
-        d.ellipse([x - r + 1.5, y - r * 0.8 + 2, x + r + 1.5, y + r * 0.8 + 2], fill=(18, 26, 12, 90))
-        d.ellipse([x - r, y - r * 0.85, x + r, y + r * 0.85], fill=base + (235,))
-        d.ellipse([x - r * 0.55, y - r * 0.6, x + r * 0.2, y - r * 0.05], fill=(min(255, base[0] + 45), min(255, base[1] + 50), base[2] + 20, 150))
-    capa = capa.filter(ImageFilter.GaussianBlur(0.6))
-    img.alpha_composite(capa)
-    return np.asarray(img.convert("RGB"), np.float32)
+        base = (int(38 + 62 * g), int(66 + 62 * g), int(24 + 24 * g))
+        d.ellipse([x - r + 2, y - r * .8 + 3, x + r + 2, y + r * .8 + 3], fill=(16, 24, 10, 100))
+        d.ellipse([x - r, y - r * .85, x + r, y + r * .85], fill=base + (240,))
+        d.ellipse([x - r * .55, y - r * .6, x + r * .2, y - r * .05], fill=(min(255, base[0] + 48), min(255, base[1] + 52), base[2] + 22, 150))
+    im.alpha_composite(capa.filter(ImageFilter.GaussianBlur(.7)))
+    return np.asarray(im.convert("RGB"), np.float32)
 
 
-def colonias_base(rng, geo, n=170):
-    """Posiciones fijas de colonias para una cocha, separadas entre sí (muestreo con distancia mínima).
-    El orden de aparición va desde unos pocos manchones hacia afuera, como coloniza el cushuro."""
-    cx, cy, rx, ry, _, _ = geo
-    grupos = [(cx + rng.uniform(-0.5, 0.5) * rx, cy + rng.uniform(-0.45, 0.45) * ry) for _ in range(4)]
-    pts, intentos = [], 0
-    dmin = rx * 0.085
-    while len(pts) < n and intentos < 20000:
-        intentos += 1
-        x, y = cx + rng.uniform(-1, 1) * rx * 0.86, cy + rng.uniform(-1, 1) * ry * 0.86
-        if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 > 0.74:
+def colonias_base(rng, geo, n=190):
+    """Posiciones fijas y forma propia de cada colonia; aparecen desde unos manchones hacia afuera."""
+    cx, cy, rx, ry = geo
+    grupos = [(cx + rng.uniform(-.55, .55) * rx, cy + rng.uniform(-.5, .5) * ry) for _ in range(4)]
+    pts, dmin = [], rx * .07
+    for _ in range(25000):
+        if len(pts) >= n:
+            break
+        x, y = cx + rng.uniform(-1, 1) * rx * .88, cy + rng.uniform(-1, 1) * ry * .88
+        if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 > .76:
             continue
-        if any((x - px) ** 2 + (y - py) ** 2 < dmin * dmin for px, py, _, _ in pts):
+        if any((x - px) ** 2 + (y - py) ** 2 < dmin * dmin for px, py, *_ in pts):
             continue
-        pts.append((x, y, 0.35 + rng.beta(1.5, 2.8) * 1.35, rng.uniform(0, 1)))
-    cerca = lambda p: min(math.hypot(p[0] - gx, p[1] - gy) for gx, gy in grupos) * rng.uniform(0.8, 1.25)
+        forma = rng.normal(0, 1, 4)  # deformación propia (armónicos 2..5)
+        pts.append((x, y, .35 + rng.beta(1.5, 2.6) * 1.4, rng.uniform(0, 1), forma, rng.random() < .22))
+    cerca = lambda p: min(math.hypot(p[0] - gx, p[1] - gy) for gx, gy in grupos) * rng.uniform(.8, 1.25)
     return sorted(pts, key=cerca)
 
 
-def dibujar_colonia(capa, sombra, x, y, r, tono):
-    """Esfera gelatinosa: cuerpo con degradado radial, borde translúcido, brillo especular y sombra."""
+def dibujar_colonias(img, etiquetas, usadas, escala):
+    """Colonias irregulares con volumen, borde gelatinoso translúcido, brillo y sombra; etiqueta de cada una."""
+    base = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).convert("RGBA")
+    sombra = Image.new("L", base.size, 0)
     sd = ImageDraw.Draw(sombra)
-    sd.ellipse([x - r * 0.9 + r * 0.25, y - r * 0.75 + r * 0.32, x + r * 0.9 + r * 0.25, y + r * 0.75 + r * 0.32], fill=110)
-    s = int(r * 2) + 2
-    yy, xx = np.mgrid[0:s, 0:s].astype(np.float32)
-    d = np.hypot(xx - s / 2, yy - s / 2) / r
-    luz = np.hypot(xx - s / 2 + r * 0.35, yy - s / 2 + r * 0.4) / r
-    oscuro = color((28 + 10 * tono, 44 + 6 * tono, 14))
-    claro = color((118 + 30 * tono, 138 + 10 * tono, 46 + 10 * tono))
-    cuerpo = mezcla(claro, oscuro, np.clip(luz / 1.5, 0, 1) ** 1.2)
-    cuerpo = mezcla(cuerpo, color((160, 175, 90)), np.clip((d - 0.86) * 7, 0, 1) * 0.5)  # borde gelatinoso
-    alfa = np.clip((1 - d) * r * 0.9, 0, 1) * 255
-    rgba = np.dstack([np.clip(cuerpo, 0, 255), alfa]).astype(np.uint8)
-    capa.alpha_composite(Image.fromarray(rgba, "RGBA"), (int(x - s / 2), int(y - s / 2)))
-    hd = ImageDraw.Draw(capa)
-    hx, hy, hr = x - r * 0.38, y - r * 0.42, max(1.5, r * 0.22)
-    hd.ellipse([hx - hr, hy - hr * 0.7, hx + hr, hy + hr * 0.7], fill=(255, 255, 240, 170))
-    hd.ellipse([hx - hr * 0.45, hy - hr * 0.3, hx + hr * 0.45, hy + hr * 0.3], fill=(255, 255, 255, 230))
+    capa = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    ed = ImageDraw.Draw(etiquetas)
+    for k, (x, y, s, tono, forma, sumergida) in enumerate(usadas, start=1):
+        ky = estirar(x, y) * .96  # esferas redondas en la cámara (apenas achatadas por flotar)
+        r = max(3.0, s * escala / math.sqrt(ky))  # misma área en el mundo: la cobertura no cambia
+        ang = np.linspace(0, 2 * math.pi, 28, endpoint=False)
+        rr = r * (1 + .07 * forma[0] * np.sin(2 * ang) + .05 * forma[1] * np.cos(3 * ang) + .04 * forma[2] * np.sin(5 * ang + forma[3]))
+        poli = [(x + math.cos(a) * q, y + math.sin(a) * q * ky) for a, q in zip(ang, rr)]
+        sd.polygon([(px + r * .3, py + r * .5 * ky) for px, py in poli], fill=150)
+        ed.polygon(poli, fill=min(k, 255))
+        # cuerpo: degradado radial con luz desde arriba a la izquierda
+        s2 = int(r * 2.4 * ky) + 4
+        m = Image.new("L", (s2, s2), 0)
+        ImageDraw.Draw(m).polygon([(px - x + s2 / 2, py - y + s2 / 2) for px, py in poli], fill=255)
+        m = m.filter(ImageFilter.GaussianBlur(.8))
+        yy, xx = np.mgrid[0:s2, 0:s2].astype(np.float32)
+        luz = np.hypot(xx - s2 / 2 + r * .38, (yy - s2 / 2) / ky + r * .42) / r
+        oscuro = C(18 + 16 * tono, 28 + 6 * tono, 10 + 4 * tono)
+        claro = C(78 + 34 * tono, 100 + 8 * tono, 30 + 10 * tono)
+        cuerpo = mezcla(claro, oscuro, np.clip(luz / 1.55, 0, 1) ** 1.15)
+        borde = np.asarray(m, np.float32) / 255
+        gel = np.clip((1 - borde) * 3.5, 0, 1) * (borde > .02)
+        cuerpo = mezcla(cuerpo, C(120, 140, 80), gel * .5)
+        alfa = borde * (1 - gel * .35) * (.62 if sumergida else 1) * 255
+        capa.alpha_composite(Image.fromarray(np.dstack([np.clip(cuerpo, 0, 255), alfa]).astype(np.uint8), "RGBA"), (int(x - s2 / 2), int(y - s2 / 2)))
+        if not sumergida:
+            hd = ImageDraw.Draw(capa)
+            hx, hy, hr = x - r * .36, y - r * .4 * ky, max(1.6, r * .2)
+            hd.ellipse([hx - hr * 1.4, hy - hr * .8 * ky, hx + hr * 1.4, hy + hr * .8 * ky], fill=(240, 250, 230, 110))
+            hd.ellipse([hx - hr * .5, hy - hr * .32 * ky, hx + hr * .5, hy + hr * .32 * ky], fill=(255, 255, 255, 235))
+    sombra = sombra.filter(ImageFilter.GaussianBlur(6))
+    base = Image.composite(Image.new("RGBA", base.size, (8, 18, 16, 255)), base, sombra.point(lambda v: int(v * .5)))
+    base.alpha_composite(capa)
+    return np.asarray(base.convert("RGB"), np.float32)
 
 
-def render(id_, n, total, cobertura, base_img, agua, geo, pts):
-    cx, cy, rx, ry, _, _ = geo
+# ---------------------------------------------------------------- 2. perspectiva de la cámara
+def homografia(src, dst):
+    """Coeficientes de PIL (salida → entrada) que llevan los puntos dst (cámara) a src (mundo)."""
+    A, b = [], []
+    for (X, Y), (x, y) in zip(src, dst):
+        A += [[x, y, 1, 0, 0, 0, -X * x, -X * y], [0, 0, 0, x, y, 1, -Y * x, -Y * y]]
+        b += [X, Y]
+    return np.linalg.solve(np.array(A, float), np.array(b, float)).tolist()
+
+
+MUNDO_Q = [(0, 0), (WW, 0), (WW, WH), (0, WH)]
+CAMARA_Q = [(-CW * .05, HORIZONTE + 4), (CW * 1.05, HORIZONTE + 4), (CW * 1.95, CH * 1.12), (-CW * .95, CH * 1.12)]
+COEF = homografia(MUNDO_Q, CAMARA_Q)
+FWD = homografia(CAMARA_Q, MUNDO_Q)  # mundo → cámara
+
+
+def proyectar(x, y):
+    a, b, c, d, e, f, g, h = FWD
+    w = g * x + h * y + 1
+    return (a * x + b * y + c) / w, (d * x + e * y + f) / w
+
+
+def estirar(x, y):
+    """Cuánto hay que alargar en Y (en el mundo) para que una esfera se vea redonda en la cámara."""
+    x0, y0 = proyectar(x, y)
+    x1, _ = proyectar(x + 1, y)
+    _, y2 = proyectar(x, y + 1)
+    return max(1.0, min(4.0, abs(x1 - x0) / max(abs(y2 - y0), 1e-6)))
+# Campo de bofedal alrededor (sin cocha), proyectado más ancho: llena el suelo hasta el horizonte
+COEF_CAMPO = homografia(MUNDO_Q, [(-CW * 1.4, HORIZONTE + 2), (CW * 2.4, HORIZONTE + 2), (CW * 5, CH * 1.12), (-CW * 4, CH * 1.12)])
+_gx, _gy = np.meshgrid(np.arange(WW), np.arange(WH))
+_d = np.minimum.reduce([_gx, _gy, WW - 1 - _gx, WH - 1 - _gy])
+BORDE_SUAVE = Image.fromarray((np.clip(_d / 260, 0, 1) ** 1.5 * 255).astype(np.uint8))  # el mundo se funde con el campo
+
+
+def cielo_y_cerros(rng):
+    yy = np.mgrid[0:CH, 0:CW][0].astype(np.float32)
+    t = np.clip(yy / HORIZONTE, 0, 1)
+    cielo = mezcla(C(118, 158, 206), C(218, 228, 236), t ** 1.6)
+    im = Image.fromarray(cielo.astype(np.uint8))
+    d = ImageDraw.Draw(im, "RGBA")
+    for _ in range(9):  # nubes suaves
+        x, y, w = rng.uniform(0, CW), rng.uniform(30, HORIZONTE * .55), rng.uniform(120, 340)
+        for k in range(6):
+            d.ellipse([x + k * w * .12, y - w * .07, x + k * w * .12 + w * .5, y + w * .09], fill=(250, 250, 252, 38))
+    x = np.linspace(0, CW, 300)
+    # cordillera lejana azulada con nieve y lomas cercanas pardas
+    for base, alto, col, nieve in [(HORIZONTE - 18, 120, (142, 152, 172), True), (HORIZONTE + 4, 60, (112, 104, 86), False)]:
+        y = base - alto * (.35 + .65 * np.abs(np.sin(x / CW * math.pi * rng.uniform(1.4, 2.6) + rng.uniform(0, 6))))
+        y += np.cumsum(rng.normal(0, 1.4, len(x))) * .6
+        d.polygon([(0, CH)] + list(zip(x, y)) + [(CW, CH)], fill=col + (255,))
+        if nieve:
+            tope = y.min() + 28
+            d.polygon([(0, tope)] + list(zip(x, np.minimum(y, tope))) + [(CW, tope)], fill=(246, 248, 252, 230))
+    return np.asarray(im, np.float32)
+
+
+def a_camara(im, resample=Image.BICUBIC, coef=None):
+    if not isinstance(im, Image.Image):
+        im = Image.fromarray(im)
+    return im.transform((CW, CH), Image.PERSPECTIVE, coef or COEF, resample=resample)
+
+
+# ---------------------------------------------------------------- 3-5. render de una toma
+def render(id_, n, total, v, mundo_img, agua, geo, pts, fondo):
+    cx, cy, rx, ry = geo
     area_agua = float(agua.sum())
-    objetivo = cobertura / 100 * area_agua
-    # Las primeras colonias del orden ya existen; con más cobertura, más colonias y más grandes
-    k = max(5, int(len(pts) * min(1, 0.07 + cobertura / 100 * 0.95)))
+    cob = v["cobertura_pct"]
+    k = max(6, int(len(pts) * min(1, .06 + cob / 100 * .95)))
     usadas = pts[:k]
-    suma = sum(math.pi * (s ** 2) for _, _, s, _ in usadas)
-    escala = math.sqrt(objetivo / max(suma, 1e-6)) * 1.08
-    escala = min(escala, rx * 0.085 * 0.75 if cobertura < 70 else 64)
+    suma = sum(math.pi * (p[2] ** 2) for p in usadas)
+    escala = min(math.sqrt(cob / 100 * area_agua / max(suma, 1e-6)) * 1.05, rx * .07 * (.78 if cob < 70 else 1.25))
+    etiquetas = Image.new("L", (WW, WH), 0)
+    rng = np.random.default_rng(n * 101 + sum(map(ord, id_)))
+    vista = dibujar_colonias(mundo_img, etiquetas, usadas, escala)
 
-    img = Image.fromarray(np.clip(base_img, 0, 255).astype(np.uint8)).convert("RGBA")
-    sombra = Image.new("L", (W, H), 0)
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    marcas = []
-    for x, y, s, tono in sorted(usadas, key=lambda p: p[1]):
-        r = max(3.0, s * escala)
-        dibujar_colonia(capa, sombra, x, y, r, tono)
-        marcas.append((x, y, r))
-    sombra = sombra.filter(ImageFilter.GaussianBlur(4))
-    img = Image.composite(Image.new("RGBA", (W, H), (10, 20, 18, 255)), img, sombra.point(lambda v: v * 0.55))
-    img.alpha_composite(capa)
-    # una película de agua encima de las colonias (están semisumergidas)
-    vel = Image.new("RGBA", (W, H), (60, 120, 125, 0))
-    va = Image.fromarray((agua * 38).astype(np.uint8))
-    vel.putalpha(va)
-    img.alpha_composite(vel)
+    # proyección a la cámara
+    cam = np.asarray(a_camara(np.clip(vista, 0, 255).astype(np.uint8)), np.float32)
+    cubierto = np.asarray(a_camara(BORDE_SUAVE, Image.BILINEAR), np.float32) / 255
+    agua_c = np.asarray(a_camara(Image.fromarray((agua * 255).astype(np.uint8)), Image.BILINEAR), np.float32) / 255
+    lab = np.asarray(a_camara(etiquetas, Image.NEAREST))
 
-    # Óptica de cámara: viñeta + grano
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    vig = 1 - 0.38 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2)
-    arr = np.asarray(img.convert("RGB"), np.float32) * vig[..., None]
-    arr += np.random.default_rng(hash((id_, n)) % 2**32).normal(0, 4.5, arr.shape)
-    img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
+    yy, xx = np.mgrid[0:CH, 0:CW].astype(np.float32)
+    lejos = np.clip(1 - (yy - HORIZONTE) / (CH - HORIZONTE), 0, 1)  # 1 en el horizonte, 0 abajo
+    # reflejo del cielo en el agua (más fuerte hacia el fondo) y destellos de sol
+    refl = mezcla(np.broadcast_to(C(150, 180, 205), cam.shape), np.broadcast_to(C(215, 226, 234), cam.shape), lejos)
+    # las colonias flotan en la superficie: no reflejan el cielo
+    colonia = np.asarray(Image.fromarray(((lab > 0) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5)), np.float32) / 255
+    cam = mezcla(cam, refl, agua_c * (1 - colonia) * (.08 + .5 * lejos ** 2.6))
+    destellos = (rng.random((CH, CW)) > .99985) * agua_c * (1 - colonia) * (lejos > .35)
+    cam = cam + (np.asarray(Image.fromarray((np.clip(destellos, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2)), np.float32) * 2.2)[..., None]
+    # neblina de distancia y desenfoque de lo lejano
+    cam = mezcla(cam, np.broadcast_to(C(200, 210, 218), cam.shape), (lejos ** 4) * .5)
+    lejano = np.asarray(Image.fromarray(np.clip(cam, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(2.2)), np.float32)
+    cam = mezcla(cam, lejano, np.clip((lejos - .45) * 2, 0, 1))
+    img = mezcla(fondo, cam, np.clip(cubierto, 0, 1))
 
-    # Capa de la visión artificial
-    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    od = ImageDraw.Draw(ov)
-    for x, y, r in marcas:
-        od.ellipse([x - r - 3, y - r - 3, x + r + 3, y + r + 3], outline=(255, 210, 63, 235), width=2)
-    aisladas = sorted(marcas, key=lambda m: -min((math.hypot(m[0] - o[0], m[1] - o[1]) - m[2] - o[2] for o in marcas if o is not m), default=99))
-    for x, y, r in aisladas[:3]:
-        od.line([x + r * 0.7, y - r * 0.7, x + r + 10, y - r - 10], fill=(255, 210, 63, 200), width=1)
-        etq = f"{2 * r / escala * 1.1:.1f} cm"
-        tx, ty = x + r + 12, y - r - 24
-        od.rectangle([tx - 3, ty - 2, tx + od.textlength(etq, font=FUENTE(12)) + 3, ty + 15], fill=(10, 12, 26, 170))
-        od.text((tx, ty), etq, font=FUENTE(12), fill=(255, 230, 150, 240))
-    od.rectangle([0, 0, W, 30], fill=(10, 12, 26, 175))
-    od.text((12, 7), f"QOCHA ÑAWI · CAM-01 · {id_} · {n}/{total}", font=FUENTE(15), fill=(244, 236, 220, 255))
-    txt = f"{len(marcas)} colonias · cobertura {cobertura:.1f} %"
-    tw = od.textlength(txt, font=FUENTE(15))
-    od.text((W - tw - 12, 7), txt, font=FUENTE(15), fill=(255, 210, 63, 255))
-    od.rectangle([0, H - 26, W, H], fill=(10, 12, 26, 150))
-    od.text((12, H - 21), "IMAGEN SINTÉTICA · DEMO DE CONCEPTO", font=FUENTE(13), fill=(244, 236, 220, 220))
-    od.text((W - 190, H - 21), "SEGMENTACIÓN HSV v0.1", font=FUENTE(13), fill=(244, 236, 220, 160))
-    img.alpha_composite(ov)
-    return img.convert("RGB")
+    # óptica: viñeta, aberración cromática, ruido de sensor
+    vig = 1 - .42 * (((xx - CW / 2) / (CW / 2)) ** 2 + ((yy - CH / 2) / (CH / 2)) ** 2)
+    img = img * vig[..., None]
+    img[..., 0] = np.roll(img[..., 0], 2, axis=1)
+    img[..., 2] = np.roll(img[..., 2], -2, axis=1)
+    img = 255 * ((np.clip(img, 0, 255) / 255) ** .86) * 1.06  # exposición: más luminosa, como una toma de día
+    img = img + rng.normal(0, 5, img.shape)
+    foto = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).resize((OUT_W, OUT_H), Image.LANCZOS)
+
+    # capa de visión: segmentación + contornos + cajas
+    lab_s = np.asarray(Image.fromarray(lab).resize((OUT_W, OUT_H), Image.NEAREST))
+    mascara = lab_s > 0
+    borde = mascara & ((np.roll(lab_s, 1, 0) != lab_s) | (np.roll(lab_s, 1, 1) != lab_s) | (np.roll(lab_s, -1, 0) != lab_s) | (np.roll(lab_s, -1, 1) != lab_s))
+    ov = np.zeros((OUT_H, OUT_W, 4), np.uint8)
+    ov[mascara] = (199, 155, 212, 40)        # lila translúcido: color del pilar de visión en la app
+    ov[borde] = (255, 225, 77, 255)
+    foto = foto.convert("RGBA")
+    foto.alpha_composite(Image.fromarray(ov, "RGBA"))
+    d = ImageDraw.Draw(foto)
+    ids, cuenta = np.unique(lab_s[mascara], return_counts=True)
+    for e in ids[np.argsort(-cuenta)][:7]:
+        ys, xs = np.nonzero(lab_s == e)
+        x0, y0, x1, y1 = xs.min() - 3, ys.min() - 3, xs.max() + 3, ys.max() + 3
+        txt = f"cushuro {.86 + .13 * rng.random():.2f}"
+        tw = d.textlength(txt, font=fuente(12, True))
+        d.rectangle([x0, y0, x1, y1], outline=(255, 225, 77, 255), width=2)
+        d.rectangle([x0, y0 - 17, x0 + tw + 8, y0], fill=(255, 225, 77, 235))
+        d.text((x0 + 4, y0 - 15), txt, font=fuente(12, True), fill=(20, 18, 30, 255))
+    # panel de resultados
+    filas = [("detecciones", f"{len(ids)}"), ("cobertura", f"{cob:.1f} %"), ("biomasa est.", f"{v['biomasa_kg']:.1f} kg")]
+    px, py = OUT_W - 222, 14
+    d.rounded_rectangle([px, py, OUT_W - 14, py + 30 + 21 * len(filas)], radius=8, fill=(14, 16, 34, 205))
+    d.text((px + 12, py + 8), "SEGMENTACIÓN HSV v0.1", font=fuente(12, True), fill=(199, 155, 212, 255))
+    for i, (a, b) in enumerate(filas):
+        d.text((px + 12, py + 30 + 21 * i), a, font=fuente(14), fill=(244, 236, 220, 220))
+        d.text((OUT_W - 26 - d.textlength(b, font=fuente(14, True)), py + 30 + 21 * i), b, font=fuente(14, True), fill=(255, 225, 77, 255))
+    # texto de cámara trampa
+    ts = datetime.fromisoformat(v["timestamp"])
+    temp = 6 + 6 * math.sin((ts.hour - 8) / 24 * 2 * math.pi) + rng.normal(0, .4)
+    d.rectangle([0, OUT_H - 28, OUT_W, OUT_H], fill=(0, 0, 0, 150))
+    d.text((12, OUT_H - 22), f"QOCHA ÑAWI  CAM-01  {id_}", font=fuente(15, True), fill=(255, 255, 255, 235))
+    fecha = f"{ts:%Y-%m-%d  %H:%M}   {temp:4.1f}°C   {n}/{total}"
+    d.text((OUT_W - 12 - d.textlength(fecha, font=fuente(15)), OUT_H - 22), fecha, font=fuente(15), fill=(255, 255, 255, 235))
+    d.text((12, 12), "IMAGEN SINTÉTICA, DEMO DE CONCEPTO", font=fuente(12, True), fill=(255, 255, 255, 170))
+    return foto.convert("RGB")
 
 
 def main():
@@ -222,14 +315,19 @@ def main():
         por_cocha[v["cocha_id"]].append(v)
     (DEMO / "fotos").mkdir(parents=True, exist_ok=True)
     for id_, serie in por_cocha.items():
-        rng = np.random.default_rng(abs(hash(id_)) % 2**32 if False else sum(map(ord, id_)) * 7919)
-        base, agua, geo = escena(rng)
+        rng = np.random.default_rng(sum(map(ord, id_)) * 7919)
+        mundo_img, agua, geo = mundo(rng)
         pts = colonias_base(rng, geo)
+        fondo = cielo_y_cerros(rng)
+        campo, _, _ = mundo(rng, con_agua=False)
+        campo_c = np.asarray(a_camara(np.clip(campo, 0, 255).astype(np.uint8), coef=COEF_CAMPO), np.float32)
+        suelo = np.asarray(a_camara(Image.new("L", (WW, WH), 255), Image.BILINEAR, COEF_CAMPO), np.float32)[..., None] / 255
+        fondo = fondo * (1 - suelo) + campo_c * suelo
         serie.sort(key=lambda v: v["timestamp"])
         for n, v in enumerate(serie, 1):
-            img = render(id_, n, len(serie), v["cobertura_pct"], base, agua, geo, pts)
+            img = render(id_, n, len(serie), v, mundo_img, agua, geo, pts, fondo)
             out = DEMO / v["foto"].removeprefix("demo/")
-            img.save(out, quality=82, optimize=True, progressive=True)
+            img.save(out, quality=84, optimize=True, progressive=True)
             print(out.name, f"{out.stat().st_size // 1024} KB")
 
 

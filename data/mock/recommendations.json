@@ -1,0 +1,4 @@
+[
+  { "codigo": "TDS_ALTO", "condicion": "tds_ppm > 150", "mensaje_es": "El agua tiene muchos sólidos disueltos; evita cosechar aquí por ahora.", "mensaje_en": "Water has high dissolved solids; avoid harvesting here for now." },
+  { "codigo": "OK", "condicion": "tds_ppm <= 150", "mensaje_es": "Las condiciones son buenas para el cushuro.", "mensaje_en": "Conditions are good for cushuro." }
+]

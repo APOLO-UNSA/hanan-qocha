@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lecturas Qocha Ñawi",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["cocha_id", "timestamp", "tds_ppm", "temp_agua_c"],
+    "properties": {
+      "cocha_id":    { "type": "string" },
+      "timestamp":   { "type": "string", "format": "date-time" },
+      "tds_ppm":     { "type": "number", "minimum": 0 },
+      "temp_agua_c": { "type": "number", "minimum": -5, "maximum": 40 },
+      "ph":          { "type": "number", "minimum": 0, "maximum": 14 },
+      "uv_index":    { "type": "number", "minimum": 0 }
+    },
+    "additionalProperties": false
+  }
+}

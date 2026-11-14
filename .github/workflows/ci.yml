@@ -1,0 +1,70 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      twin: ${{ steps.filter.outputs.twin }}
+      vision: ${{ steps.filter.outputs.vision }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            twin:
+              - 'twin/**'
+            vision:
+              - 'vision/**'
+
+  contracts:            # siempre corre, tarda segundos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install check-jsonschema
+      - run: bash scripts/validate_data.sh
+
+  twin:                 # solo si cambió twin/
+    needs: changes
+    if: needs.changes.outputs.twin == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: twin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+
+  vision:               # solo si cambió vision/
+    needs: changes
+    if: needs.changes.outputs.vision == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r vision/requirements.txt pytest
+      - run: pytest vision -q
+
+  ci-gate:              # ÚNICO check obligatorio en main
+    if: always()
+    needs: [contracts, twin, vision]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "Algún trabajo falló"; exit 1
+          fi
+          echo "Todo OK (los trabajos omitidos no bloquean)"

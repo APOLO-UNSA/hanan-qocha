@@ -1,0 +1,4 @@
+[
+  { "cocha_id": "SAB-01", "nombre": "Cocha de ejemplo 1", "lat": -16.2, "lon": -71.4, "altitud_m": 4300, "indice_satelital": 0.62 },
+  { "cocha_id": "SAB-02", "nombre": "Cocha de ejemplo 2", "lat": -16.3, "lon": -71.3, "altitud_m": 4150, "indice_satelital": 0.35 }
+]

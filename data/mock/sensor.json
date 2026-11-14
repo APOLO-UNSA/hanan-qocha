@@ -1,0 +1,4 @@
+[
+  { "cocha_id": "SAB-01", "timestamp": "2026-11-14T10:00:00-05:00", "tds_ppm": 42, "temp_agua_c": 9.5, "ph": 7.1, "uv_index": 11 },
+  { "cocha_id": "SAB-02", "timestamp": "2026-11-14T10:00:00-05:00", "tds_ppm": 180, "temp_agua_c": 12.0 }
+]

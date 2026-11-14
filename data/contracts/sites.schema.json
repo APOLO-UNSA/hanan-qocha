@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cochas candidatas (satélite)",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["cocha_id", "nombre", "lat", "lon", "altitud_m", "indice_satelital"],
+    "properties": {
+      "cocha_id":         { "type": "string" },
+      "nombre":           { "type": "string" },
+      "lat":              { "type": "number", "minimum": -90, "maximum": 90 },
+      "lon":              { "type": "number", "minimum": -180, "maximum": 180 },
+      "altitud_m":        { "type": "number" },
+      "indice_satelital": { "type": "number" }
+    },
+    "additionalProperties": false
+  }
+}

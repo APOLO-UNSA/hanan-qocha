@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recomendaciones al productor",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["codigo", "condicion", "mensaje_es", "mensaje_en"],
+    "properties": {
+      "codigo":     { "type": "string" },
+      "condicion":  { "type": "string" },
+      "mensaje_es": { "type": "string" },
+      "mensaje_en": { "type": "string" }
+    },
+    "additionalProperties": false
+  }
+}

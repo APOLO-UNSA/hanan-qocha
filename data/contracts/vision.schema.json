@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Resultados de visión artificial",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["cocha_id", "timestamp", "foto", "cobertura_pct", "biomasa_kg"],
+    "properties": {
+      "cocha_id":      { "type": "string" },
+      "timestamp":     { "type": "string", "format": "date-time" },
+      "foto":          { "type": "string" },
+      "cobertura_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+      "biomasa_kg":    { "type": "number", "minimum": 0 }
+    },
+    "additionalProperties": false
+  }
+}

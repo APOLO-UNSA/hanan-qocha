@@ -1,0 +1,9 @@
+# Reemplazar @usuario-* por los usuarios reales de GitHub.
+# Sin dueño por defecto: lo que no está listado no exige revisión.
+
+/twin/                @usuario-pax
+/data/contracts/      @usuario-pax
+/device/              @usuario-paolo @usuario-adrian
+/satellite/           @usuario-adrian @usuario-paolo
+/vision/              @usuario-victor @usuario-paolo
+/business/            @usuario-ortega @usuario-jefry

@@ -7,7 +7,6 @@ import {
   ESTADO_INFO,
   factors,
   PARAMS,
-  project,
   RANGES,
   recommend,
   type Calibration,
@@ -16,6 +15,7 @@ import {
 import { esc, fmtTime, pct } from '../ui'
 import { IAC, t } from '../i18n'
 import { gauge, iacRing, ICONS, sliderBand } from '../art'
+import { attachChartHover, chartSvg } from './chart'
 
 const ETAPAS = [
   { t: '', s: '' }, // la primera etapa muestra la aptitud real (ver renderState)
@@ -31,11 +31,11 @@ const SLIDERS: { key: keyof Conditions; label: string; unit: string; min: number
   { key: 'profundidad_m', label: t.sDepth, unit: 'm', min: 0, max: 2, step: 0.05 },
 ]
 
-const HORIZON_DAYS = 90
-const DAY = 864e5
 
 /** Función que la vista devuelve para refrescarse con datos nuevos sin perder el estado de los sliders. */
 export type Refresh = (d: Dataset) => void
+
+const REDUCIR = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = false, pollSeconds = 10): Refresh | undefined {
   const site = d.sites.find((s) => s.cocha_id === id)
@@ -49,9 +49,11 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   const cond: Conditions = { ...base }
   let touched = false // el productor movió algún slider
   let fotoSel = -1 // índice de la foto elegida en la serie (-1 = la última)
+  let primera = true // la curva se anima solo al entrar a la ficha
+  let anillo = true // y el anillo del IAC también
 
   root.innerHTML = `
-    <section class="page">
+    <section class="page intro">
       <a class="back" href="#/">${t.backToMap}</a>
       <header class="hero">
         <div>
@@ -76,7 +78,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
           <h4>${t.vision} <span class="tag">${t.coloniesMarked}</span></h4>
           <div id="vision"></div>
         </div>
-        <div class="card wide k-curva">
+        <div class="card wide k-curva panel-instrumento">
           <h4>${t.curve} <span class="tag">${t.curveSub}</span></h4>
           <div id="chart"></div>
         </div>
@@ -114,9 +116,21 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       { valor: st.indice_in_situ, peso: 0.4, color: '#4fc1bf', label: t.idxInSitu },
       { valor: st.indice_vision, peso: 0.2, color: '#c79bd4', label: t.idxVision },
     ]
-    $('#iac-ring').innerHTML =
-      iacRing(PILARES, st.iac, info.label, info.color, IAC) +
-      `<div class="ring-legend">${PILARES.map((p) => `<span><i style="background:${p.color}"></i>${p.label} <b>${pct(p.valor)}</b></span>`).join('')}</div>`
+    const leyenda = `<div class="ring-legend">${PILARES.map((p) => `<span><i style="background:${p.color}"></i>${p.label} <b>${pct(p.valor)}</b></span>`).join('')}</div>`
+    const dibujar = (k: number) =>
+      ($('#iac-ring').innerHTML =
+        iacRing(PILARES.map((p) => ({ ...p, valor: p.valor == null ? null : p.valor * k })), st.iac * k, info.label, info.color, IAC) + leyenda)
+    if (anillo && !REDUCIR) {
+      // Al entrar: el anillo se llena y el número sube.
+      anillo = false
+      const t0 = performance.now()
+      const paso = (ahora: number) => {
+        const k = Math.min(1, (ahora - t0 - 250) / 1100)
+        dibujar(k <= 0 ? 0 : 1 - (1 - k) ** 3)
+        if (k < 1) requestAnimationFrame(paso)
+      }
+      requestAnimationFrame(paso)
+    } else dibujar(1)
     const msg = $('#estado-msg')
     msg.style.setProperty('--c', info.color)
     msg.innerHTML = `<i>${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</i>${esc(info.msg)}`
@@ -124,8 +138,8 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     $('#ruta').innerHTML = ETAPAS.map((e, i) => {
       const cls = i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''
       const node = i < st.etapa ? '✓' : String(i + 1)
-      if (i > 0) return `<li class="${cls}"><span class="node">${node}</span><b>${e.t}</b><small>${e.s}</small></li>`
-      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
+      if (i > 0) return `<li class="${cls}" style="--i:${i}"><span class="node">${node}</span><b>${e.t}</b><small>${e.s}</small></li>`
+      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color};--i:0"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)} · ${t.stageFitSub}</small></li>`
     }).join('')
     $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id))
     renderVision()
@@ -181,11 +195,14 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     }
     const alpha = st.calib?.alpha ?? 1
     const chartEl = $('#chart')
-    chartEl.innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha, chartEl.clientWidth) + calibHtml(st.calib)
+    const ch = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha, chartEl.clientWidth, primera)
+    primera = false
+    chartEl.innerHTML = ch.html + calibHtml(st.calib)
+    attachChartHover(chartEl, ch.meta)
     $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha, {
       ph: st.sensor?.ph,
     })
-      .map((a) => `<li class="${a.nivel}"><span class="ic-box">${ICONS[a.codigo] ?? ICONS.ALERTA}</span><div><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</div></li>`)
+      .map((a, k) => `<li class="${a.nivel}" style="--i:${k}"><span class="ic-box">${ICONS[a.codigo] ?? ICONS.ALERTA}</span><div><b>${esc(a.titulo)}</b>${a.detalle ? `<small>${esc(a.detalle)}</small>` : ''}</div></li>`)
       .join('')
   }
 
@@ -209,6 +226,18 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
 
   renderState()
   renderScenario()
+  setTimeout(() => root.querySelector('.page')?.classList.remove('intro'), 2600)
+
+  // Las secciones aparecen al llegar a ellas con el scroll.
+  const revelar = root.querySelectorAll<HTMLElement>('.sec, .card, .trail')
+  if (REDUCIR || !('IntersectionObserver' in window)) revelar.forEach((el) => el.classList.add('in'))
+  else {
+    const io = new IntersectionObserver(
+      (ents) => ents.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))),
+      { threshold: 0.12 },
+    )
+    revelar.forEach((el) => (el.classList.add('reveal'), io.observe(el)))
+  }
 
   // Si cambia el ancho (giro del celular, ventana), se redibuja la curva a su nuevo tamaño.
   let lastW = $('#chart').clientWidth
@@ -292,64 +321,4 @@ function historyHtml(serie: SensorReading[]): string {
 
 function photoUrl(foto: string) {
   return /^(https?:|data:|\/)/.test(foto) ? foto : `${import.meta.env.BASE_URL}${foto}`
-}
-
-/** Gráfico SVG: curva con las condiciones reales (punteada), escenario de los sliders y puntos de la cámara. */
-function chartSvg(
-  vis: { timestamp: string; biomasa_kg: number }[],
-  b0: number,
-  K: number,
-  base: Conditions,
-  cond: Conditions,
-  alpha = 1,
-  width = 640, // ancho real del contenedor: el SVG se dibuja a ese tamaño para que el texto no se encoja en el celular
-): string {
-  const W = Math.round(Math.min(Math.max(width || 640, 300), 640))
-  const H = W < 480 ? 220 : 260, L = 40, R = 20, T = 12, B = 30
-  const t0 = vis.length ? Date.parse(vis[0].timestamp) : Date.now()
-  const startDay = vis.length ? Math.round((Date.parse(vis.at(-1)!.timestamp) - t0) / DAY) : 0
-  const maxDay = startDay + HORIZON_DAYS
-  const yMax = Math.max(K, ...vis.map((v) => v.biomasa_kg)) * 1.1
-
-  const x = (day: number) => L + (day / maxDay) * (W - L - R)
-  const y = (kg: number) => T + (1 - kg / yMax) * (H - T - B)
-  const path = (serie: number[]) => serie.map((b, i) => `${i ? 'L' : 'M'}${x(startDay + i).toFixed(1)},${y(b).toFixed(1)}`).join('')
-
-  const pBase = project(b0, K, base, HORIZON_DAYS, alpha)
-  const pScen = project(b0, K, cond, HORIZON_DAYS, alpha)
-  const area = `${path(pScen)}L${x(maxDay).toFixed(1)},${y(0).toFixed(1)}L${x(startDay).toFixed(1)},${y(0).toFixed(1)}Z`
-  // Ajuste del modelo recalibrado sobre el periodo medido (desde la primera foto).
-  const fitDays = startDay
-  const pFit = vis.length > 1 ? project(vis[0].biomasa_kg, K, base, fitDays, alpha) : []
-  const fitPath = pFit.map((b, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(b).toFixed(1)}`).join('')
-  const umbral = PARAMS.umbral_cosecha * K
-
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * yMax)
-  const nTicks = W < 480 ? 4 : 6
-  const step = maxDay > 60 ? 7 * Math.ceil(maxDay / nTicks / 7) : 15 // semanas si el eje es largo
-  const xTicks = Array.from({ length: Math.floor(maxDay / step) + 1 }, (_, i) => i * step)
-
-  return `
-  <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${t.curve}">
-    <defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b7a4c" stop-opacity=".28"/><stop offset="1" stop-color="#3b7a4c" stop-opacity="0"/></linearGradient></defs>
-    ${yTicks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="axis" text-anchor="end">${v.toFixed(0)}</text>`).join('')}
-    <text x="${L + 4}" y="${y(yMax) + 4}" class="axis">kg</text>
-    ${xTicks.map((d) => `<text x="${x(d)}" y="${H - 10}" class="axis" text-anchor="middle">${d} ${t.dayUnit}</text>`).join('')}
-    <line x1="${L}" x2="${W - R}" y1="${y(umbral)}" y2="${y(umbral)}" class="umbral"/>
-    <text x="${W - R}" y="${y(umbral) - 5}" class="axis umbral-lbl" text-anchor="end">${t.harvestPoint}</text>
-    <line x1="${L}" x2="${W - R}" y1="${y(K)}" y2="${y(K)}" class="cap"/>
-    ${fitPath ? `<path d="${fitPath}" class="fit"/>` : ''}
-    <path d="${area}" class="area"/>
-    <line x1="${x(startDay)}" x2="${x(startDay)}" y1="${T}" y2="${H - B}" class="hoy"/>
-    <text x="${x(startDay) + 5}" y="${H - B - 5}" class="hoy-lbl">${t.today}</text>
-    <path d="${path(pBase)}" class="base"/>
-    <path d="${path(pScen)}" class="scen"/>
-    ${vis.map((v) => `<circle cx="${x((Date.parse(v.timestamp) - t0) / DAY)}" cy="${y(v.biomasa_kg)}" r="5" class="real"><title>${v.biomasa_kg} kg</title></circle>`).join('')}
-  </svg>
-  <div class="chart-legend">
-    <span><i class="l-scen"></i>${t.legendScenario}</span>
-    <span><i class="l-base"></i>${t.legendBase}</span>
-    <span><i class="l-real"></i>${t.legendReal}</span>
-    ${vis.length > 1 ? `<span><i class="l-fit"></i>${t.legendFit}</span>` : ''}
-  </div>`
 }

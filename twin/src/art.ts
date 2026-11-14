@@ -86,3 +86,21 @@ export function sliderBand(r: Range, min: number, max: number): string {
   const p = (x: number) => Math.max(0, Math.min(100, ((x - min) / (max - min)) * 100))
   return `--a:${p(r.min)}%;--b:${p(r.optLo)}%;--c:${p(r.optHi)}%;--d:${p(r.max)}%`
 }
+
+/**
+ * Pin de una cocha en el mapa: gota del color de su aptitud con la laguna y sus colonias adentro,
+ * e insignia con el IAC. `i` escalona la animación de entrada.
+ */
+export function pinHtml(color: string, iac: number, estado: string, i: number): string {
+  return `<div class="pin ${estado}" style="--c:${color};--i:${i}">
+    <svg viewBox="0 0 40 52" aria-hidden="true">
+      <ellipse class="pin-sombra" cx="20" cy="49" rx="8" ry="2.6"/>
+      <path class="pin-gota" d="M20 48C20 48 4 30.5 4 19.5a16 16 0 1 1 32 0C36 30.5 20 48 20 48z"/>
+      <circle cx="20" cy="19.5" r="11" fill="#fbf7ee"/>
+      <path d="M11.5 18.2 15.6 12.6 17.8 15.2 20.2 11.6 25 18.2z" fill="#d9a23f"/>
+      <ellipse cx="20" cy="22.3" rx="8.6" ry="4.6" fill="#2c8c8f"/>
+      <circle cx="16.6" cy="22.4" r="1.6" fill="#8cc084"/><circle cx="20.6" cy="23.4" r="1.9" fill="#8cc084"/><circle cx="23.8" cy="21.6" r="1.2" fill="#8cc084"/>
+    </svg>
+    <b>${Math.round(iac * 100)}</b>
+  </div>`
+}

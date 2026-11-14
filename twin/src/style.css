@@ -1,12 +1,14 @@
 /* Qocha Twin · identidad visual
    Paleta del altiplano: noche andina, ichu, bofedal, laguna, arcilla, sobre papel con curvas de nivel.
    Cada pilar tiene su color: satélite = índigo, sensor = laguna, visión = lila. */
-@import '@fontsource-variable/fraunces';
-@import '@fontsource/ibm-plex-sans/400.css';
-@import '@fontsource/ibm-plex-sans/500.css';
-@import '@fontsource/ibm-plex-sans/600.css';
-@import '@fontsource/ibm-plex-mono/400.css';
-@import '@fontsource/ibm-plex-mono/500.css';
+/* Tipografías: Alegreya y Alegreya Sans (Huerta Tipográfica, Argentina) + Martian Mono para datos. */
+@import '@fontsource/alegreya/latin-700.css';
+@import '@fontsource/alegreya/latin-800.css';
+@import '@fontsource/alegreya/latin-700-italic.css';
+@import '@fontsource/alegreya-sans/latin-400.css';
+@import '@fontsource/alegreya-sans/latin-500.css';
+@import '@fontsource/alegreya-sans/latin-700.css';
+@import '@fontsource-variable/martian-mono';
 
 :root {
   --noche: #1d2242;
@@ -25,23 +27,30 @@
   --arcilla: #c4552d;
   --lila: #7d4e8a;
 
-  --f-titulo: 'Fraunces Variable', Georgia, serif;
-  --f-texto: 'IBM Plex Sans', system-ui, sans-serif;
-  --f-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --f-titulo: 'Alegreya', Georgia, serif;
+  --f-texto: 'Alegreya Sans', system-ui, sans-serif;
+  --f-mono: 'Martian Mono Variable', ui-monospace, monospace;
 
   --awayu: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='12'%3E%3Crect width='32' height='12' fill='%23c4552d'/%3E%3Crect y='0' width='32' height='2' fill='%23d9a23f'/%3E%3Crect y='10' width='32' height='2' fill='%233b7a4c'/%3E%3Cpath d='M0 6 4 2.5 8 6 4 9.5Z M8 6 12 2.5 16 6 12 9.5Z M16 6 20 2.5 24 6 20 9.5Z M24 6 28 2.5 32 6 28 9.5Z' fill='%231d2242'/%3E%3Cpath d='M2.6 6 4 4.8 5.4 6 4 7.2Z M18.6 6 20 4.8 21.4 6 20 7.2Z' fill='%23f4ecdc'/%3E%3Cpath d='M10.6 6 12 4.8 13.4 6 12 7.2Z M26.6 6 28 4.8 29.4 6 28 7.2Z' fill='%23d9a23f'/%3E%3C/svg%3E");
-  --curvas: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560' fill='none' stroke='%23b9a57a' stroke-opacity='.28'%3E%3Cpath d='M120 300c0-90 70-170 170-170s160 60 160 150-80 170-170 170-160-60-160-150z'/%3E%3Cpath d='M165 300c0-62 52-120 125-120s115 44 115 104-60 124-127 124-113-46-113-108z'/%3E%3Cpath d='M210 298c0-36 34-72 80-72s72 28 72 64-36 76-80 76-72-32-72-68z'/%3E%3Cpath d='M250 296c0-14 16-30 38-30s32 12 32 28-16 34-36 34-34-16-34-32z'/%3E%3Cpath d='M-40 40c60-30 120 10 150-20s20-80 70-90'/%3E%3Cpath d='M-40 90c80-30 150 20 200-20s40-100 100-110'/%3E%3Cpath d='M400 600c10-60 70-90 130-80s70-40 80-70'/%3E%3Cpath d='M350 600c20-90 100-130 170-120s90-50 100-90'/%3E%3C/svg%3E");
 
   font-family: var(--f-texto);
   color: var(--tinta);
   background: var(--papel);
+  font-size: 17px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--papel) var(--curvas); }
+/* Fondo: mapa topográfico procedural (curvas cada 40 m, maestras cada 200 m, cochas) + cordillera al pie. */
+body {
+  margin: 0;
+  background:
+    url('./assets/cordillera.svg') center bottom / 100% 200px no-repeat fixed,
+    url('./assets/topo.svg') center / cover no-repeat fixed,
+    var(--papel);
+}
 a { color: var(--noche-2); }
-h2, h3, h4 { margin: 0 0 .5rem; font-family: var(--f-titulo); font-weight: 600; letter-spacing: -.01em; }
+h2, h3, h4 { margin: 0 0 .5rem; font-family: var(--f-titulo); font-weight: 800; letter-spacing: -.005em; }
 .muted { color: var(--tinta-suave); }
 .small { font-size: .82rem; }
 button { font: inherit; }
@@ -55,7 +64,7 @@ button { font: inherit; }
 .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 10px; background: var(--awayu); z-index: 500; }
 .brand { display: flex; align-items: center; gap: .6rem; color: var(--papel); text-decoration: none; white-space: nowrap; }
 .brand .logo { width: 38px; height: 38px; }
-.brand-name { font-family: var(--f-titulo); font-size: 1.45rem; font-weight: 650; letter-spacing: -.02em; }
+.brand-name { font-family: var(--f-titulo); font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; }
 .brand small { font-family: var(--f-mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ichu); margin-top: .35rem; }
 .top-right { display: flex; gap: .5rem; align-items: center; }
 .src, .lang {
@@ -107,7 +116,7 @@ button { font: inherit; }
 .hero {
   display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;
   padding: 1.6rem 1.6rem 1.6rem; border-radius: 14px; color: var(--papel);
-  background: var(--curvas) center / 420px, linear-gradient(135deg, var(--noche) 0%, var(--noche-2) 100%);
+  background: url('./assets/topo-claro.svg') 30% 40% / 1100px auto no-repeat, linear-gradient(135deg, var(--noche) 0%, var(--noche-2) 100%);
   position: relative; overflow: hidden;
 }
 .hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--awayu); background-size: 26px 8px; }
@@ -121,7 +130,7 @@ button { font: inherit; }
 }
 .estado-pill i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); display: grid; place-items: center; color: #fff; font-style: normal; font-size: .75rem; font-weight: 700; }
 .ring-wrap { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
-.ring .ring-num { font-family: var(--f-titulo); font-size: 40px; font-weight: 700; fill: #fff; }
+.ring .ring-num { font-family: var(--f-titulo); font-size: 42px; font-weight: 800; fill: #fff; }
 .ring .ring-lbl { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; fill: #ffffffcc; text-transform: uppercase; }
 .ring .ring-estado { font-size: 8.5px; letter-spacing: .06em; }
 .ring-legend { display: flex; gap: .7rem; font-family: var(--f-mono); font-size: .68rem; color: #f4ecdccc; }
@@ -151,7 +160,7 @@ button { font: inherit; }
 .trail li.done .node { background: var(--bofedal); border-color: var(--bofedal); color: #fff; }
 .trail li.now .node { border-color: var(--ichu); color: var(--tinta); animation: latido 2s infinite; }
 .trail li.aptitud .node { background: var(--c); border-color: var(--c); color: #fff; }
-.trail b { font-family: var(--f-titulo); font-size: 1.05rem; font-weight: 600; }
+.trail b { font-family: var(--f-titulo); font-size: 1.12rem; font-weight: 700; }
 .trail small { color: var(--tinta-suave); font-size: .78rem; line-height: 1.3; }
 @keyframes latido { 0% { box-shadow: 0 0 0 0 #d9a23f99; } 70% { box-shadow: 0 0 0 10px #d9a23f00; } 100% { box-shadow: 0 0 0 0 #d9a23f00; } }
 
@@ -176,7 +185,7 @@ button { font: inherit; }
 .gauges { display: grid; gap: .85rem; }
 .g-head { display: flex; justify-content: space-between; align-items: baseline; }
 .g-label { font-size: .85rem; color: var(--tinta-suave); }
-.g-val { font-family: var(--f-mono); font-size: 1.25rem; font-weight: 500; font-variant-numeric: tabular-nums; border-radius: 3px; }
+.g-val { font-family: var(--f-mono); font-size: 1.05rem; font-weight: 500; font-variant-numeric: tabular-nums; border-radius: 3px; }
 .g-val small { font-size: .72rem; margin-left: .25rem; color: var(--tinta-suave); }
 .g-track { position: relative; height: 10px; border-radius: 5px; background: var(--papel-2); margin-top: .3rem; }
 .g-opt { position: absolute; top: 0; bottom: 0; background: #3b7a4c55; border-left: 2px solid var(--bofedal); border-right: 2px solid var(--bofedal); }
@@ -221,28 +230,66 @@ button { font: inherit; }
 .empty { display: grid; place-items: center; gap: .4rem; padding: 1.5rem 1rem; border: 1.5px dashed var(--linea); border-radius: 8px; color: var(--tinta-suave); text-align: center; font-size: .88rem; }
 .empty .ic { width: 30px; height: 30px; color: var(--k, var(--linea)); }
 
-/* Curva */
-.chart { width: 100%; height: auto; display: block; }
-.chart .grid { stroke: var(--linea); stroke-dasharray: 2 4; }
-.chart .axis { font-family: var(--f-mono); font-size: 10.5px; fill: var(--tinta-suave); }
-.chart .umbral { stroke: var(--ichu); stroke-width: 2; stroke-dasharray: 7 5; }
-.chart .umbral-lbl { fill: #a8761c; font-weight: 500; }
-.chart .cap { stroke: var(--tinta-suave); stroke-dasharray: 1 4; stroke-linecap: round; }
-.chart .base { fill: none; stroke: var(--tinta-suave); stroke-width: 1.8; stroke-dasharray: 5 5; }
-.chart .scen { fill: none; stroke: var(--bofedal); stroke-width: 3.2; stroke-linecap: round; }
-.chart .area { fill: url(#gArea); }
-.chart .fit { fill: none; stroke: var(--arcilla); stroke-width: 1.8; opacity: .7; }
-.chart .real { fill: var(--arcilla); stroke: var(--carta); stroke-width: 2.5; }
-.chart .hoy { stroke: var(--tinta); stroke-width: 1; stroke-dasharray: 2 3; }
-.chart .hoy-lbl { font-family: var(--f-mono); font-size: 10px; fill: var(--tinta); }
-.chart-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font-size: .76rem; color: var(--tinta-suave); margin-top: .4rem; }
-.chart-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .35rem; }
-.l-scen { border-color: var(--bofedal) !important; }
-.l-base { border-color: var(--tinta-suave) !important; border-top-style: dashed !important; border-top-width: 2px !important; }
-.l-real { width: 10px !important; height: 10px !important; border: 0 !important; border-radius: 50%; background: var(--arcilla); }
-.l-fit { border-color: var(--arcilla) !important; border-top-width: 2px !important; opacity: .7; }
-.calib { margin: .8rem 0 0; padding: .55rem .8rem; border-left: 3px solid var(--lila); background: #7d4e8a12; border-radius: 0 6px 6px 0; font-size: .84rem; }
-.calib.muted { border-left-color: var(--linea); background: var(--papel); }
+/* Curva: panel oscuro tipo instrumento, distinto de las tarjetas claras */
+.panel-instrumento {
+  background: radial-gradient(120% 140% at 0% 0%, #283062 0%, #161a36 60%, #11142a 100%);
+  border-color: #11142a; color: var(--papel);
+  box-shadow: 0 18px 40px -22px #11142acc, inset 0 1px 0 #ffffff12;
+}
+.panel-instrumento h4 { color: var(--papel); }
+.panel-instrumento h4 .tag { color: var(--bofedal-claro); }
+.chart { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.chart .grid { stroke: #f4ecdc1f; }
+.chart .grid-min { stroke: #f4ecdc0d; }
+.chart .eje { stroke: #f4ecdc66; stroke-width: 1.2; }
+.chart .tick { stroke: #f4ecdc66; }
+.chart .axis { font-family: var(--f-mono); font-size: 10.5px; fill: #f4ecdcb3; }
+.chart .axis-title { font-family: var(--f-texto); font-size: 12px; fill: #f4ecdc99; letter-spacing: .04em; }
+.chart .futuro { fill: #ffffff06; }
+.chart .zona-lbl { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; fill: #d9a23fcc; }
+.chart .umbral { stroke: var(--ichu); stroke-width: 1.6; stroke-dasharray: 6 5; }
+.chart .umbral-lbl { font-family: var(--f-mono); font-size: 10.5px; fill: var(--ichu); }
+.chart .cap { stroke: #f4ecdc55; stroke-dasharray: 1 4; stroke-linecap: round; stroke-width: 1.4; }
+.chart .cap-lbl { font-family: var(--f-mono); font-size: 10px; fill: #f4ecdc88; }
+.chart .hoy { stroke: #f4ecdccc; stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .hoy-lbl { font-family: var(--f-mono); font-size: 10px; fill: var(--papel); letter-spacing: .1em; text-transform: uppercase; }
+.chart .base { fill: none; stroke: #f4ecdc8c; stroke-width: 1.6; stroke-dasharray: 5 5; }
+.chart .scen { fill: none; stroke: #9fdc8f; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.chart .scen-glow { fill: none; stroke: #9fdc8f; stroke-width: 7; opacity: .35; }
+.chart .fit { fill: none; stroke: #f08a5d; stroke-width: 2; stroke-dasharray: 2 4; stroke-linecap: round; }
+.chart .real { fill: #f08a5d; stroke: #161a36; stroke-width: 2.5; }
+.chart .hito line { stroke: var(--ichu); stroke-dasharray: 2 3; }
+.chart .hito circle { fill: var(--ichu); stroke: #161a36; stroke-width: 3; }
+.chart .hito text { font-family: var(--f-mono); font-size: 11px; font-weight: 500; fill: var(--ichu); }
+.chart .hover { fill: transparent; cursor: crosshair; }
+.chart .cursor-v { stroke: #f4ecdc88; stroke-width: 1; }
+.chart .cursor-p { fill: #9fdc8f; stroke: #161a36; stroke-width: 3; }
+.chart .cursor-tip rect { fill: var(--papel); }
+.chart .tip-1 { font-family: var(--f-mono); font-size: 13px; font-weight: 600; fill: var(--tinta); }
+.chart .tip-2 { font-family: var(--f-texto); font-size: 11.5px; fill: var(--tinta-suave); }
+/* Entrada animada (solo al abrir la ficha) */
+.chart.intro .scen, .chart.intro .scen-glow, .chart.intro .base, .chart.intro .fit {
+  stroke-dasharray: var(--len) var(--len); stroke-dashoffset: var(--len); animation: trazo 1.6s .25s cubic-bezier(.6, 0, .2, 1) forwards;
+}
+.chart.intro .base { animation-delay: .1s; }
+.chart.intro .area { opacity: 0; animation: aparecer .9s 1.2s forwards; }
+.chart.intro .real { opacity: 0; transform-box: fill-box; transform-origin: center; animation: pop .45s calc(.15s + var(--i) * .09s) backwards; animation-fill-mode: forwards; }
+.chart.intro .hito { opacity: 0; animation: aparecer .6s 1.7s forwards; }
+@keyframes trazo { to { stroke-dashoffset: 0; } }
+.chart.intro .base { animation-name: trazo-punteado; }
+@keyframes trazo-punteado { from { opacity: 0; } to { opacity: 1; stroke-dashoffset: 0; stroke-dasharray: 5 5; } }
+@keyframes aparecer { to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
+.chart-legend { display: flex; flex-wrap: wrap; gap: .35rem 1.2rem; font-size: .82rem; color: #f4ecdcb3; margin-top: .6rem; }
+.chart-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: .4rem; }
+.l-scen { border-color: #9fdc8f !important; }
+.l-base { border-color: #f4ecdc8c !important; border-top-style: dashed !important; border-top-width: 2px !important; }
+.l-real { width: 10px !important; height: 10px !important; border: 0 !important; border-radius: 50%; background: #f08a5d; }
+.l-fit { border-color: #f08a5d !important; border-top-style: dotted !important; border-top-width: 3px !important; }
+.l-zona { width: 14px !important; height: 10px !important; border: 0 !important; background: repeating-linear-gradient(45deg, #d9a23f66 0 3px, transparent 3px 6px); }
+.calib { margin: .9rem 0 0; padding: .6rem .85rem; border-left: 3px solid #c79bd4; background: #ffffff0d; border-radius: 0 6px 6px 0; font-size: .9rem; color: var(--papel); }
+.calib.muted { border-left-color: #f4ecdc44; color: #f4ecdcaa; }
+.calib b { color: #e7c8ef; }
 
 /* ¿Qué pasa si…? — sliders con la franja óptima */
 #sliders label { display: block; margin-bottom: 1rem; }
@@ -279,7 +326,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
 .actions li.alerta .ic-box { background: var(--arcilla); }
 .actions li.alerta { background: #c4552d14; }
 .actions .ic { width: 24px; height: 24px; }
-.actions b { font-family: var(--f-titulo); font-size: 1.08rem; font-weight: 600; line-height: 1.25; display: block; }
+.actions b { font-family: var(--f-titulo); font-size: 1.12rem; font-weight: 700; line-height: 1.25; display: block; }
 .actions small { color: var(--tinta-suave); display: block; margin-top: .15rem; }
 
 .supuestos { margin-top: 2rem; padding-top: .8rem; border-top: 1px dashed var(--linea); font-family: var(--f-mono); font-size: .72rem; line-height: 1.6; }
@@ -313,3 +360,68 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
   position: fixed; right: 12px; bottom: 12px; z-index: 1000;
   background: var(--ichu-claro); color: var(--tinta); font-family: var(--f-mono); font-size: .7rem; padding: .2rem .65rem; border-radius: 99px; opacity: .92;
 }
+
+/* ---------- Pines del mapa ---------- */
+.pin-wrap { background: none; border: 0; }
+.pin { position: relative; width: 40px; height: 52px; transform-origin: 50% 96%; cursor: pointer;
+  animation: pin-cae .7s calc(.15s + var(--i) * 70ms) cubic-bezier(.3, 1.6, .5, 1) backwards; transition: transform .18s; }
+.pin svg { width: 40px; height: 52px; display: block; overflow: visible; filter: drop-shadow(0 3px 4px #11142a66); }
+.pin-gota { fill: var(--c); stroke: #fbf7ee; stroke-width: 2.4; }
+.pin-sombra { fill: #11142a; opacity: .35; }
+.pin b {
+  position: absolute; top: -7px; right: -11px; min-width: 24px; height: 20px; padding: 0 5px; border-radius: 10px;
+  background: var(--noche); color: var(--papel); border: 2px solid #fbf7ee;
+  font-family: var(--f-mono); font-size: 10px; font-weight: 600; line-height: 16px; text-align: center;
+}
+.pin:hover { transform: scale(1.18) translateY(-2px); }
+.pin.apta::before {
+  content: ''; position: absolute; left: 50%; top: 96%; width: 16px; height: 6px; margin: -3px 0 0 -8px; border-radius: 50%;
+  border: 2px solid var(--c); animation: onda 2.4s calc(1s + var(--i) * 70ms) ease-out infinite; opacity: 0;
+}
+@keyframes pin-cae { from { opacity: 0; transform: translateY(-38px) scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes onda { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(4.2); } }
+.video .pin { transform: scale(1.3); }
+.video .pin:hover { transform: scale(1.45); }
+.leaflet-tooltip b { font-family: var(--f-titulo); font-size: .95rem; }
+
+/* ---------- Animaciones ---------- */
+/* Entrada de la ficha (solo al abrirla: .intro se quita a los 2,6 s) */
+.intro .hero > div:first-child > * { animation: subir .7s cubic-bezier(.2, .8, .2, 1) backwards; }
+.intro .hero .kicker { animation-delay: .05s; }
+.intro .hero h2 { animation-delay: .12s; }
+.intro .hero .meta { animation-delay: .22s; }
+.intro .hero .estado-pill { animation-delay: .32s; }
+.intro .ring-wrap { animation: girar-in 1s .1s cubic-bezier(.2, .8, .2, 1) backwards; }
+.intro .trail .node { animation: pop .5s calc(.45s + var(--i) * .18s) cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.intro .trail li::before { transform-origin: left; animation: crecer .5s calc(.55s + var(--i) * .18s) ease-out backwards; }
+.intro .trail b, .intro .trail small { animation: subir .5s calc(.5s + var(--i) * .18s) backwards; }
+.intro .g-mark { animation: marca 1.1s .6s cubic-bezier(.2, .8, .2, 1) backwards; }
+.intro .actions li { animation: deslizar .5s calc(.9s + var(--i) * .12s) cubic-bezier(.2, .8, .2, 1) backwards; }
+.intro .gauge { animation: subir .5s .4s backwards; }
+@keyframes subir { from { opacity: 0; transform: translateY(14px); } }
+@keyframes girar-in { from { opacity: 0; transform: rotate(-80deg) scale(.7); } }
+@keyframes crecer { from { transform: scaleX(0); } }
+@keyframes marca { from { left: 0; opacity: 0; } }
+@keyframes deslizar { from { opacity: 0; transform: translateX(-18px); } }
+/* Aparición al hacer scroll */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s cubic-bezier(.2, .8, .2, 1); }
+.reveal.in { opacity: 1; transform: none; }
+.twin-grid .card.reveal:nth-child(2n) { transition-delay: .12s; }
+/* Lista del mapa */
+.cocha-list li { animation: deslizar .5s calc(.2s + var(--i) * 45ms) cubic-bezier(.2, .8, .2, 1) backwards; }
+/* Logo: las colonias "respiran" */
+.brand .logo circle { transform-box: fill-box; transform-origin: center; animation: respirar 3.2s ease-in-out infinite; }
+.brand .logo circle:nth-of-type(2) { animation-delay: .6s; }
+.brand .logo circle:nth-of-type(3) { animation-delay: 1.2s; }
+@keyframes respirar { 50% { transform: scale(1.18); } }
+/* Botones e insignias */
+.btn-sec:active { transform: scale(.97); }
+#sliders .apt { transition: background .3s; }
+.actions li { transition: background .3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+/* La curva espera a estar a la vista para dibujarse */
+.card.reveal:not(.in) .chart.intro *, .card.reveal:not(.in) .chart.intro { animation-play-state: paused !important; }

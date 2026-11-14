@@ -1,7 +1,10 @@
 import './style.css'
 import { DATA_SOURCE, loadDataset, type Dataset } from './data'
 import { renderMap } from './views/map'
-import { renderCocha } from './views/cocha'
+import { renderCocha, type Refresh } from './views/cocha'
+
+const LIVE = DATA_SOURCE === 'live'
+const POLL_MS = Number(import.meta.env.VITE_POLL_MS ?? 10_000)
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
@@ -13,12 +16,21 @@ app.innerHTML = `
 const view = app.querySelector<HTMLElement>('#view')!
 
 let data: Dataset
+let refreshCocha: Refresh | undefined
 
 function route() {
   const m = location.hash.match(/^#\/cocha\/([^/]+)/)
-  if (m) renderCocha(view, data, decodeURIComponent(m[1]))
+  refreshCocha = undefined
+  if (m) refreshCocha = renderCocha(view, data, decodeURIComponent(m[1]), LIVE)
   else renderMap(view, data)
   window.scrollTo(0, 0)
+}
+
+async function poll() {
+  data = await loadDataset()
+  // En la ficha se actualiza en su sitio (no reinicia sliders); el mapa se vuelve a dibujar.
+  if (refreshCocha) refreshCocha(data)
+  else if (!location.hash.startsWith('#/cocha/')) route()
 }
 
 async function start() {
@@ -27,12 +39,13 @@ async function start() {
   route()
   window.addEventListener('hashchange', route)
 
-  // Modo en vivo: refresca las lecturas del sensor cada 10 s (solo en el mapa, para no reiniciar los sliders).
-  if (DATA_SOURCE === 'live') {
-    setInterval(async () => {
-      data = await loadDataset()
-      if (!location.hash.startsWith('#/cocha/')) route()
-    }, 10_000)
+  if (LIVE) {
+    // Encadenado para no solapar peticiones si el puente tarda; pausa con la pestaña oculta.
+    const tick = async () => {
+      if (!document.hidden) await poll().catch(() => {})
+      setTimeout(tick, POLL_MS)
+    }
+    setTimeout(tick, POLL_MS)
   }
 }
 

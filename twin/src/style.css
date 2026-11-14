@@ -111,3 +111,12 @@ h3 { margin-top: 1.75rem; }
 .actions li.alerta { border-color: var(--bad); }
 .actions small { color: var(--muted); }
 .supuestos { margin-top: 1.5rem; }
+
+/* Lecturas en vivo */
+.live { font-size: .7rem; font-weight: 600; color: var(--bad); margin-left: .4rem; text-transform: uppercase; letter-spacing: .04em; }
+.live::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--bad); margin-right: .3rem; vertical-align: 1px; animation: pulse 1.6s infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.readings dd.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: #fff3c4; } to { background: transparent; } }
+.readings .up, .readings .down { color: var(--muted); font-style: normal; font-size: .75em; }
+.stale { color: var(--warn); font-weight: 600; }

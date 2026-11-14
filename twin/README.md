@@ -16,7 +16,9 @@ La app solo lee `data/<nombre>.json` (`sites`, `sensor`, `vision`, `recommendati
 - **Desarrollo:** Vite los sirve desde la carpeta `data/` del repo según `VITE_DATA_SOURCE`
   (en un `.env.local` o en la línea de comandos):
   - `processed` (por defecto): `data/processed` y, si falta el archivo, `data/mock`
-  - `live`: `data/live` → `processed` → `mock`, y refresca cada 10 s
+  - `live`: `data/live` → `processed` → `mock`; refresca cada 10 s (`VITE_POLL_MS`).
+    En la ficha de la cocha se actualizan sensor, IAC, curva y acciones sin reiniciar
+    los sliders que el productor haya movido ("Volver a la lectura real" los reengancha).
   - `mock`: solo `data/mock`
 - **Producción:** `deploy.yml` copia `data/mock` y encima `data/processed` a `dist/data/`.
 

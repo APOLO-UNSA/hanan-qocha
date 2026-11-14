@@ -499,6 +499,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
 .iac-como .mini-h { color: var(--ichu); margin: 0 0 .25rem; }
 .iac-como p { margin: 0; font-size: .9rem; line-height: 1.4; }
 .video .resumen { left: 18px; top: 18px; }
+.video .leaflet-control-zoom { display: none; }
 @media (max-width: 760px) {
   .map-wrap { height: 55vh; }
   .resumen { left: 52px; right: 10px; width: auto; top: 8px; padding: .55rem .7rem; }

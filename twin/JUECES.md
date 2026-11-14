@@ -38,7 +38,7 @@ del código (`src/model.ts`) y de la demo; si cambian, actualízalos aquí.
 ## Recalibración ("cierra el ciclo")
 
 - Con **2 o más fotos**, el gemelo busca el factor **α** (0,05–3) que hace que el modelo reproduzca lo medido por la cámara. Desde ahí proyecta con esa tasa ajustada.
-- **Demo:** DEMO-01 → tasa ×1,76, error medio **2,9 → 0,5 kg (84 % menos)** con 8 fotos. DEMO-02 → ×1,55, **64 % menos** con 6 fotos.
+- **Demo:** DEMO-01 → tasa ×1,58, error medio **2,6 → 1,4 kg (47 % menos)** con 8 fotos. DEMO-02 → ×1,42, error **1,9 → 0,6 kg (70 % menos)** con 6 fotos.
 - **Frase:** *"El modelo no pretende saberlo todo de entrada: arranca con la literatura y cada temporada la cámara lo corrige."*
 
 ## Preguntas probables
@@ -61,7 +61,7 @@ No todavía en campo. Es un modelo inicial; la visión artificial lo recalibra c
 Al contrario: recomienda **cuánto dejar (30 %)** y cuándo esperar. Hoy se cosecha sin ningún criterio.
 
 **¿Cómo lo usa un productor que no lee mucho?**
-- Colores (verde, ámbar, rojo) y una sola acción clara ("Esperar 4 semanas", "Cosechar 33 kg").
+- Colores (verde, ámbar, rojo) y una sola acción clara ("Esperar 4 semanas", "Cosechar 31 kg").
 - Los mensajes los escribe el frente de negocio en lenguaje del productor (español e inglés), sin tocar código.
 
 **¿Qué tecnología usa?**

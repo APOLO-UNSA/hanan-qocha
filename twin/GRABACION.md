@@ -31,14 +31,14 @@ Todas las URL llevan `video=1` (modo presentación) y `lang=en` (el video va en 
 1. Desplázate hasta que se vean la **curva** y, debajo, **"What if…?"** y **"Recommended action"** en la misma pantalla.
 2. **Graba.** Arrastra despacio el slider **Dissolved solids (TDS)** de ~30 a ~250 ppm (2 s).
    - La curva verde se aplana y el slider se pone rojo.
-   - La acción pasa de *"Conditions are good… · Wait 11 days"* a la alerta roja *"Water has high dissolved solids…"* con *"Wait 6 weeks"*.
+   - La acción pasa de *"Conditions are good… · Wait 9 days"* a la alerta roja *"Water has high dissolved solids…"* con *"Wait 5 weeks"*.
 3. Vuelve a bajarlo a ~30 (1 s): la curva sube de nuevo.
 
 > Para un movimiento más suave: haz clic en el slider y usa **← →** del teclado, manteniendo presionado.
 
 ### Toma 2 · "when and how much to harvest" (2 s)
 **URL:** Cosecha + visión, DEMO-01.
-1. Encuadra la curva (puntos naranjas de la cámara + línea recalibrada) y la tarjeta **"Recommended action"** con **"Harvest 33.3 kg"** y *"leave 30 %"*.
+1. Encuadra la curva (puntos naranjas de la cámara + línea recalibrada) y la tarjeta **"Recommended action"** con **"Harvest 30.9 kg"** y *"leave 30 %"*.
 2. **Graba** quieto 2 s, o con un paneo lento hacia la acción.
 
 ### Toma 3 · "colonias marcadas por la visión" (2 s) — compartida con Victor

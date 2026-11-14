@@ -1,4 +1,5 @@
 // Genera el conjunto de DEMO del gemelo en twin/public/demo/ (datos ficticios para el video/pitch).
+// Las fotos (*.jpg) las dibuja después scripts/gen-fotos.py a partir de vision.json.
 // Cumple los contratos de data/contracts/. Uso: node scripts/gen-demo.mjs
 // Es determinista (semilla fija): volver a correrlo da los mismos archivos.
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
@@ -83,9 +84,8 @@ COCHAS.forEach((c, i) => {
       if (n > 0) for (let d = 0; d < 7; d++) b = b + r * b * (1 - b / K)
       const obs = Math.max(0.2, b * between(0.94, 1.06))
       const cob = Math.min(100, (100 * obs) / K)
-      const foto = `demo/fotos/${id}-${String(n + 1).padStart(2, '0')}.svg`
+      const foto = `demo/fotos/${id}-${String(n + 1).padStart(2, '0')}.jpg`
       vision.push({ cocha_id: id, timestamp: iso(t), foto, cobertura_pct: round(cob), biomasa_kg: round(obs) })
-      writeFileSync(resolve(OUT, 'fotos', foto.split('/').pop()), fotoSvg(cob, `${id} · foto ${n + 1}`))
     }
   }
 })
@@ -104,36 +104,3 @@ write('sensor', sensor)
 write('vision', vision)
 write('recommendations', recommendations)
 console.log(`demo: ${sites.length} cochas, ${sensor.length} lecturas, ${vision.length} fotos → ${OUT}`)
-
-/** Foto sintética de la cocha: agua, colonias según la cobertura y contornos "marcados" por la visión. */
-function fotoSvg(coberturaPct, etiqueta) {
-  const W = 400, H = 300
-  const area = (coberturaPct / 100) * W * H * 0.9
-  const blobs = []
-  let acc = 0
-  while (acc < area && blobs.length < 120) {
-    const r = between(6, 7 + coberturaPct / 3)
-    blobs.push({ x: between(r, W - r), y: between(r, H - r), r })
-    acc += Math.PI * r * r * 0.8
-  }
-  const colonias = blobs
-    .map(({ x, y, r }) => {
-      const rx = round(r * between(0.85, 1.15)), ry = round(r * between(0.8, 1.1))
-      return `<g><ellipse cx="${round(x)}" cy="${round(y)}" rx="${rx}" ry="${ry}" fill="url(#c)"/><ellipse cx="${round(x)}" cy="${round(y)}" rx="${round(rx + 2)}" ry="${round(ry + 2)}" fill="none" stroke="#ffd23f" stroke-width="1.5" stroke-dasharray="3 2"/></g>`
-    })
-    .join('')
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
-<defs>
-<radialGradient id="w" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#5d8a8c"/><stop offset="1" stop-color="#2b4a4f"/></radialGradient>
-<radialGradient id="c" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#9bbf4a"/><stop offset=".7" stop-color="#4f7a2a"/><stop offset="1" stop-color="#2f4f1c"/></radialGradient>
-</defs>
-<rect width="${W}" height="${H}" fill="url(#w)"/>
-<path d="M0 ${H - 18} Q ${W / 3} ${H - 30} ${W / 2} ${H - 14} T ${W} ${H - 22} V ${H} H 0 Z" fill="#6b5a3e" opacity=".7"/>
-${colonias}
-<rect x="0" y="0" width="${W}" height="22" fill="#000" opacity=".45"/>
-<text x="8" y="15" font-family="monospace" font-size="11" fill="#fff">Qocha Ñawi · ${etiqueta}</text>
-<text x="${W - 8}" y="15" font-family="monospace" font-size="11" fill="#ffd23f" text-anchor="end">${blobs.length} colonias · ${round(coberturaPct)} %</text>
-<text x="8" y="${H - 6}" font-family="monospace" font-size="10" fill="#fff" opacity=".8">IMAGEN SINTÉTICA (DEMO)</text>
-</svg>
-`
-}

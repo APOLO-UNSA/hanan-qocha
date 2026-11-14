@@ -161,8 +161,8 @@ async function main() {
   await cdp('Runtime.enable')
   await cdp('Emulation.setDeviceMetricsOverride', { width: VW, height: VH, deviceScaleFactor: DSF, mobile: false })
 
-  // 1 · "forecasts growth": la curva responde al slider de TDS (DEMO-02)
-  await ir(url('#/cocha/DEMO-02'))
+  // 1 · "forecasts growth": la curva responde al slider de TDS (QC-02)
+  await ir(url('#/cocha/QC-02'))
   await js(CURSOR)
   await espera(2800)
   await js(`(() => { document.querySelector('.panel-instrumento').scrollIntoView({ block: 'start' }); scrollBy(0, -14) })()`)
@@ -179,8 +179,8 @@ async function main() {
     await espera(900)
   })
 
-  // 2 · "how much to harvest": la curva se dibuja y se ve la acción de cosecha (DEMO-01)
-  await ir(url('#/cocha/DEMO-01'))
+  // 2 · "how much to harvest": la curva se dibuja y se ve la acción de cosecha (QC-01)
+  await ir(url('#/cocha/QC-01'))
   await js(CURSOR)
   await espera(2600)
   // Se posiciona en la curva justo antes de grabar: así se graba cómo se dibuja al aparecer.
@@ -193,7 +193,7 @@ async function main() {
     await espera(1500)
   })
 
-  // 3 · "colonias marcadas": la serie de fotos de la cámara (DEMO-01)
+  // 3 · "colonias marcadas": la serie de fotos de la cámara (QC-01)
   await js(`(() => { document.querySelector('.k-vision').scrollIntoView({ block: 'center' }) })()`)
   await espera(1200)
   await js(`document.querySelector('.thumbs').scrollLeft = 0`)

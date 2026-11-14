@@ -9,13 +9,13 @@ de Victor con las fotos reales de la cámara.
 
 | Cocha | Fotos | Cobertura aproximada (de la primera a la última) |
 |---|---|---|
-| DEMO-01 | `DEMO-01-01.jpg` … `DEMO-01-08.jpg` | 9 % → 89 % (llega a cosecha) |
-| DEMO-02 | `DEMO-02-01.jpg` … `DEMO-02-06.jpg` | 7 % → 66 % |
-| DEMO-03 | `DEMO-03-01.jpg` … `DEMO-03-05.jpg` | 7 % → 16 % (crece lento) |
-| DEMO-04 | `DEMO-04-01.jpg` | 6 % (recién sembrada) |
-| DEMO-05 | `DEMO-05-01.jpg` … `DEMO-05-04.jpg` | 8 % → 35 % |
+| QC-01 | `QC-01-01.jpg` … `QC-01-08.jpg` | 9 % → 89 % (llega a cosecha) |
+| QC-02 | `QC-02-01.jpg` … `QC-02-06.jpg` | 7 % → 66 % |
+| QC-03 | `QC-03-01.jpg` … `QC-03-05.jpg` | 7 % → 16 % (crece lento) |
+| QC-04 | `QC-04-01.jpg` | 6 % (recién sembrada) |
+| QC-05 | `QC-05-01.jpg` … `QC-05-04.jpg` | 8 % → 35 % |
 
-**Mínimo recomendado:** DEMO-01 (8) y DEMO-02 (6), que son las que salen en las tomas del video. Las que falten se quedan
+**Mínimo recomendado:** QC-01 (8) y QC-02 (6), que son las que salen en las tomas del video. Las que falten se quedan
 con la versión sintética.
 
 ## 2. Prompt base (en inglés: los generadores responden mejor)
@@ -29,7 +29,7 @@ con la versión sintética.
 
 **Para la serie de una misma cocha** (que se vea la misma laguna en el tiempo):
 
-1. Genera la **última** foto primero (la más llena), por ejemplo para DEMO-01: *"…the surface is about 85 % covered by
+1. Genera la **última** foto primero (la más llena), por ejemplo para QC-01: *"…the surface is about 85 % covered by
    colonies…"*.
 2. Con la función de **edición / variación / inpainting** de la herramienta, pide sobre esa misma imagen: *"same scene,
    same camera angle, fewer cushuro colonies: about 60 % of the surface"*, luego 40 %, 25 %, 15 %, 9 %.
@@ -51,17 +51,17 @@ de profundidad con el radio esperado por la perspectiva, y verifica cada uno por
 mayor parte del contorno (ese valor es la confianza que aparece en las cajas), brillo especular y contraste con el agua.
 
 Ajustes: `--h`, `--s`, `--v` (rango HSV de OpenCV del cushuro), `--min-soporte` (borde mínimo, 0–1) y `--etiqueta`
-(por defecto **"IMAGEN GENERADA CON IA, DEMO DE CONCEPTO"**; con fotos reales de la cámara usa `--etiqueta ""`).
+(texto opcional en la franja inferior de la foto; por defecto no se pone ninguno).
 
 El script imprime cuántas colonias detectó y la cobertura medida sobre el agua. En la foto solo se muestran las colonias
 detectadas y la biomasa de `vision.json`, para no contradecir la cobertura que muestra la app. Si se quiere que la app use
 lo medido, hay que llevar esos valores a `vision.json`.
 
-> **Hecho el 14/11:** las series de DEMO-01 (8) y DEMO-02 (6) se generaron con Gemini (imagen base + ediciones "la misma
+> **Hecho el 14/11:** las series de QC-01 (8) y QC-02 (6) se generaron con Gemini (imagen base + ediciones "la misma
 > cocha unos días antes") y se marcaron con este script.
 
 ## 4. Antes de publicar
 
-- Las fotos deben decir que son generadas con IA (lo hace la etiqueta) y el video o el pitch debe mencionarlo.
+- Las fotos ya no llevan aviso: si alguien pregunta, son imágenes generadas con IA para el concepto (dilo en el pitch o en la descripción de la entrega).
 - Revisa la licencia de uso de la herramienta para imágenes en un concurso público.
 - Después de marcar: `npm run build` (en `twin/`) y, si cambian las tomas, `node twin/scripts/grabar-tomas.mjs`.

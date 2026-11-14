@@ -141,7 +141,8 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       if (i > 0) return `<li class="${cls}" style="--i:${i}"><span class="node">${node}</span><b>${e.t}</b><small>${e.s}</small></li>`
       return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color};--i:0"><span class="node">${st.estado === 'apta' ? '✓' : st.estado === 'condicional' ? '!' : '✕'}</span><b>${info.label}</b><small>${IAC} ${pct(st.iac)}, ${t.stageFitSub}</small></li>`
     }).join('')
-    $('#sensor').innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id))
+    const sensorEl = $('#sensor')
+    sensorEl.innerHTML = sensorHtml(st.sensor, prevSensor) + historyHtml(sensorHistory(d, id), sensorEl.clientWidth)
     renderVision()
     $('#supuestos').innerHTML = t.assumptions({
       tLo: RANGES.temp_agua_c.optLo, tHi: RANGES.temp_agua_c.optHi,
@@ -293,30 +294,65 @@ function calibHtml(c: Calibration | null): string {
   return `<p class="calib small">${t.calibDone(c.n, c.alpha.toFixed(2), (PARAMS.r_max * c.alpha).toFixed(3), c.errAntes.toFixed(1), c.errDespues.toFixed(1), mejora)}</p>`
 }
 
-/** Minigráficos de TDS y temperatura en las últimas 48 h (el texto va fuera del SVG para que no se encoja). */
-function historyHtml(serie: SensorReading[]): string {
+/**
+ * Historial del sensor (últimas 48 h): un minigráfico por variable, dibujado al ancho real de la tarjeta.
+ * Cabecera con el valor actual y el cambio en el periodo; dentro, la franja óptima, área, puntos de cada lectura,
+ * marca del último valor y escala; abajo, eje de tiempo compartido.
+ */
+function historyHtml(serie: SensorReading[], ancho: number): string {
   if (serie.length < 2) return ''
   const t0 = Date.parse(serie[0].timestamp)
   const t1 = Date.parse(serie.at(-1)!.timestamp)
   const horas = Math.max(1, Math.round((t1 - t0) / 3600e3))
-  const spark = (vals: number[], color: string) => {
-    const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1
-    const pts = serie.map((s, i) => {
-      const x = t1 > t0 ? ((Date.parse(s.timestamp) - t0) / (t1 - t0)) * 200 : (i / (serie.length - 1)) * 200
-      const y = 36 - ((vals[i] - lo) / span) * 32
-      return `${x.toFixed(1)},${y.toFixed(1)}`
+  const W = Math.max(260, Math.round(ancho || 420)), H = 74, L = 34, R = 10, T = 8, B = 8
+  const xs = serie.map((s, i) => (t1 > t0 ? (Date.parse(s.timestamp) - t0) / (t1 - t0) : i / (serie.length - 1)))
+  const X = (f: number) => L + f * (W - L - R)
+
+  const grafico = (vals: number[], color: string, rango: { optLo: number; optHi: number }, dec: number) => {
+    const lo0 = Math.min(...vals), hi0 = Math.max(...vals)
+    const pad = Math.max((hi0 - lo0) * 0.25, Math.abs(hi0) * 0.04, 0.5)
+    const lo = lo0 - pad, hi = hi0 + pad
+    const Y = (v: number) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B)
+    const pts = vals.map((v, i) => [X(xs[i]), Y(v)] as const)
+    const linea = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('')
+    const area = `${linea}L${X(1).toFixed(1)},${H - B}L${X(0).toFixed(1)},${H - B}Z`
+    const bandaTop = Math.max(T, Y(Math.min(rango.optHi, hi))), bandaBot = Math.min(H - B, Y(Math.max(rango.optLo, lo)))
+    const id = `h${Math.random().toString(36).slice(2, 8)}`
+    const [ux, uy] = pts.at(-1)!
+    return `<svg class="hist-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+      <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".28"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+      ${bandaBot > bandaTop ? `<rect x="${L}" y="${bandaTop}" width="${W - L - R}" height="${bandaBot - bandaTop}" class="hist-opt"/>` : ''}
+      <line x1="${L}" x2="${W - R}" y1="${Y(hi0)}" y2="${Y(hi0)}" class="hist-grid"/>
+      <line x1="${L}" x2="${W - R}" y1="${Y(lo0)}" y2="${Y(lo0)}" class="hist-grid"/>
+      <text x="${L - 6}" y="${Y(hi0) + 3.5}" class="hist-ax" text-anchor="end">${hi0.toFixed(dec)}</text>
+      <text x="${L - 6}" y="${Y(lo0) + 3.5}" class="hist-ax" text-anchor="end">${lo0.toFixed(dec)}</text>
+      <path d="${area}" fill="url(#${id})"/>
+      <path d="${linea}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${pts.slice(0, -1).map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2" fill="${color}"/>`).join('')}
+      <circle cx="${ux}" cy="${uy}" r="7" fill="${color}" opacity=".18"/><circle cx="${ux}" cy="${uy}" r="3.6" fill="${color}" stroke="#fbf7ee" stroke-width="1.5"/>
+    </svg>`
+  }
+  const bloque = (label: string, vals: number[], unidad: string, color: string, rango: { optLo: number; optHi: number }, dec: number) => {
+    const ult = vals.at(-1)!, dif = ult - vals[0]
+    const flecha = Math.abs(dif) < 10 ** -dec ? '' : dif > 0 ? '▲' : '▼'
+    return `<div class="hist-bloque">
+      <div class="hist-cab"><span class="hist-label"><i style="background:${color}"></i>${label}</span>
+        <span class="hist-val">${ult.toFixed(dec)}<small>${unidad}</small><em>${flecha} ${Math.abs(dif).toFixed(dec)} ${t.in48(horas)}</em></span></div>
+      ${grafico(vals, color, rango, dec)}
+    </div>`
+  }
+  const eje = [0, 0.5, 1]
+    .map((f) => {
+      const hrs = Math.round(horas * (1 - f))
+      return `<span style="left:${((X(f) / W) * 100).toFixed(2)}%">${hrs === 0 ? t.now : t.hoursAgo(hrs)}</span>`
     })
-    return `<svg viewBox="0 0 200 40" preserveAspectRatio="none" class="spark" aria-hidden="true">
-      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
-  }
-  const row = (label: string, vals: number[], unit: string, color: string) => {
-    const lo = Math.min(...vals), hi = Math.max(...vals)
-    return `<div class="hist-row"><span class="hist-label">${label}</span>${spark(vals, color)}
-      <span class="hist-range">${lo}–${hi} ${unit}</span></div>`
-  }
-  return `<div class="hist"><p class="muted small">${t.history(horas, serie.length)}</p>
-    ${row('TDS', serie.map((s) => s.tds_ppm), 'ppm', '#2c8c8f')}
-    ${row(t.waterTemp, serie.map((s) => s.temp_agua_c), '°C', '#c4552d')}</div>`
+    .join('')
+  return `<div class="hist">
+    <p class="hist-t">${t.historyTitle(horas)}<span>${t.readingsCount(serie.length)}</span></p>
+    ${bloque('TDS', serie.map((s) => s.tds_ppm), 'ppm', '#2c8c8f', RANGES.tds_ppm, 0)}
+    ${bloque(t.waterTemp, serie.map((s) => s.temp_agua_c), '°C', '#c4552d', RANGES.temp_agua_c, 1)}
+    <div class="hist-eje">${eje}</div>
+  </div>`
 }
 
 function photoUrl(foto: string) {

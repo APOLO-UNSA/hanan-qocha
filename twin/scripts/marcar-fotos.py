@@ -163,7 +163,7 @@ def main():
     ap.add_argument("--s", type=int, default=45, help="saturación mínima")
     ap.add_argument("--v", type=int, nargs=2, default=(30, 215), help="brillo mínimo y máximo")
     ap.add_argument("--min-soporte", type=float, default=.55, help="fracción mínima del contorno con borde nítido")
-    ap.add_argument("--etiqueta", default="IMAGEN GENERADA CON IA, DEMO DE CONCEPTO", help="aviso visible ('' con fotos reales)")
+    ap.add_argument("--etiqueta", default="", help="aviso opcional en la franja inferior de la foto")
     ap.add_argument("--depurar", action="store_true", help="dibuja también el contorno del agua usado")
     a = ap.parse_args()
 
@@ -191,7 +191,7 @@ def main():
             cv2.imwrite(str(salida / nombre), out, [cv2.IMWRITE_JPEG_QUALITY, 86])
             print(f"{nombre}: {len(colonias)} colonias, cobertura del agua {cob:.1f} % (vision.json dice {v['cobertura_pct']} %)")
             hechas += 1
-    print(f"{hechas} foto(s) marcadas" if hechas else f"No hay fotos de entrada en {entrada} (nombres esperados: DEMO-01-01.jpg, ...)")
+    print(f"{hechas} foto(s) marcadas" if hechas else f"No hay fotos de entrada en {entrada} (nombres esperados: QC-01-01.jpg, ...)")
 
 
 if __name__ == "__main__":

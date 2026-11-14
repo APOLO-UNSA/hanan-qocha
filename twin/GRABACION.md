@@ -11,7 +11,7 @@ Son 5 s de voz. Graba **tomas cortas por separado** (3–4 s cada una) y que Jef
 
 1. **Fuente de datos**
    - Si ya hay datos reales en `data/processed/`, usa la app publicada **sin** `datos=demo`.
-   - Si no, usa la demo. Aparece un aviso pequeño, "Demo data", en la esquina: **déjalo**, es lo honesto.
+   - Si no, usa los datos de demostración (`datos=demo` en la URL); la interfaz no muestra avisos.
 2. **Navegador:** Chrome a pantalla completa (**F11**), ventana de 1920×1080 y zoom del navegador al **110 %** (Ctrl +), para que el texto se lea en el video.
 3. **Grabación:** OBS (captura de ventana) a 1080p y 60 fps, o la grabadora de Windows con **Win + Alt + R**.
 4. **Cursor:** muévelo despacio y sin dudar. Ensaya cada toma 2 veces antes de grabar.
@@ -21,13 +21,13 @@ Todas las URL llevan `video=1` (modo presentación) y `lang=en` (el video va en 
 | Toma | URL |
 |---|---|
 | Mapa | https://apolo-unsa.github.io/hanan-qocha/?datos=demo&lang=en&video=1#/ |
-| Gemelo (curva) | https://apolo-unsa.github.io/hanan-qocha/?datos=demo&lang=en&video=1#/cocha/DEMO-02 |
-| Cosecha + visión | https://apolo-unsa.github.io/hanan-qocha/?datos=demo&lang=en&video=1#/cocha/DEMO-01 |
+| Gemelo (curva) | https://apolo-unsa.github.io/hanan-qocha/?datos=demo&lang=en&video=1#/cocha/QC-02 |
+| Cosecha + visión | https://apolo-unsa.github.io/hanan-qocha/?datos=demo&lang=en&video=1#/cocha/QC-01 |
 
 ## Tomas
 
 ### Toma 1 · "forecasts growth" (3–4 s) — la principal
-**URL:** Gemelo (curva), DEMO-02.
+**URL:** Gemelo (curva), QC-02.
 1. Desplázate hasta que se vean la **curva** y, debajo, **"What if…?"** y **"Recommended action"** en la misma pantalla.
 2. **Graba.** Arrastra despacio el slider **Dissolved solids (TDS)** de ~30 a ~250 ppm (2 s).
    - La curva verde se aplana y el slider se pone rojo.
@@ -37,12 +37,12 @@ Todas las URL llevan `video=1` (modo presentación) y `lang=en` (el video va en 
 > Para un movimiento más suave: haz clic en el slider y usa **← →** del teclado, manteniendo presionado.
 
 ### Toma 2 · "when and how much to harvest" (2 s)
-**URL:** Cosecha + visión, DEMO-01.
+**URL:** Cosecha + visión, QC-01.
 1. Encuadra la curva (puntos naranjas de la cámara + línea recalibrada) y la tarjeta **"Recommended action"** con **"Harvest 30.9 kg"** y *"leave 30 %"*.
 2. **Graba** quieto 2 s, o con un paneo lento hacia la acción.
 
 ### Toma 3 · "colonias marcadas por la visión" (2 s) — compartida con Victor
-**URL:** Cosecha + visión, DEMO-01, tarjeta **Computer vision**.
+**URL:** Cosecha + visión, QC-01, tarjeta **Computer vision**.
 1. **Graba** y haz clic en las miniaturas de izquierda a derecha (foto 1 → foto 8), una cada ~0,25 s: las colonias marcadas crecen.
 2. Si Victor ya tiene una foto real marcada, esta toma la reemplaza o se intercala con ella.
 

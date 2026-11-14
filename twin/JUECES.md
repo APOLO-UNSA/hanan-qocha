@@ -38,7 +38,7 @@ del código (`src/model.ts`) y de la demo; si cambian, actualízalos aquí.
 ## Recalibración ("cierra el ciclo")
 
 - Con **2 o más fotos**, el gemelo busca el factor **α** (0,05–3) que hace que el modelo reproduzca lo medido por la cámara. Desde ahí proyecta con esa tasa ajustada.
-- **Demo:** DEMO-01 → tasa ×1,58, error medio **2,6 → 1,4 kg (47 % menos)** con 8 fotos. DEMO-02 → ×1,42, error **1,9 → 0,6 kg (70 % menos)** con 6 fotos.
+- **Demo:** QC-01 → tasa ×1,58, error medio **2,6 → 1,4 kg (47 % menos)** con 8 fotos. QC-02 → ×1,42, error **1,9 → 0,6 kg (70 % menos)** con 6 fotos.
 - **Frase:** *"El modelo no pretende saberlo todo de entrada: arranca con la literatura y cada temporada la cámara lo corrige."*
 
 ## Preguntas probables

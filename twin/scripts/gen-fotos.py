@@ -306,7 +306,6 @@ def render(id_, n, total, v, mundo_img, agua, geo, pts, fondo, capa=True):
     d.text((12, OUT_H - 22), f"QOCHA ÑAWI  CAM-01  {id_}", font=fuente(15, True), fill=(255, 255, 255, 235))
     fecha = f"{ts:%Y-%m-%d  %H:%M}   {temp:4.1f}°C   {n}/{total}"
     d.text((OUT_W - 12 - d.textlength(fecha, font=fuente(15)), OUT_H - 22), fecha, font=fuente(15), fill=(255, 255, 255, 235))
-    d.text((12, 12), "IMAGEN SINTÉTICA, DEMO DE CONCEPTO", font=fuente(12, True), fill=(255, 255, 255, 170))
     return foto.convert("RGB")
 
 

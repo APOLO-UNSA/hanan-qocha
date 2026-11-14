@@ -27,10 +27,6 @@ export function langUrl(l: Lang): string {
 const es = {
   dataSource: 'Fuente de datos',
   data: 'datos',
-  seeDemo: 'ver demo',
-  exitDemo: 'salir de la demo',
-  demoBanner: 'Datos de demostración: cochas, lecturas y fotos ficticias.',
-  demoChip: 'Datos de demostración',
   offline: 'Sin conexión. Se muestran los últimos datos guardados.',
   loading: 'Cargando datos…',
 
@@ -116,7 +112,11 @@ const es = {
   secondsAgo: 'hace segundos',
   minAgo: (m: number) => `hace ${m} min`,
   stale: 'sin datos recientes',
-  history: (h: number, n: number) => `${n} lecturas en las últimas ${h} h`,
+  historyTitle: (h: number) => `Historial de ${h} h`,
+  readingsCount: (n: number) => `${n} lecturas`,
+  in48: (h: number) => `en ${h} h`,
+  hoursAgo: (h: number) => `hace ${h} h`,
+  now: 'ahora',
 
   // gráfico
   harvestPoint: 'punto de cosecha',
@@ -161,10 +161,6 @@ type Dict = typeof es
 const en: Dict = {
   dataSource: 'Data source',
   data: 'data',
-  seeDemo: 'see demo',
-  exitDemo: 'exit demo',
-  demoBanner: 'Demo data: fictitious ponds, readings and photos.',
-  demoChip: 'Demo data',
   offline: 'Offline. Showing the last saved data.',
   loading: 'Loading data…',
 
@@ -246,7 +242,11 @@ const en: Dict = {
   secondsAgo: 'seconds ago',
   minAgo: (m) => `${m} min ago`,
   stale: 'no recent data',
-  history: (h, n) => `${n} readings in the last ${h} h`,
+  historyTitle: (h) => `${h}-hour history`,
+  readingsCount: (n) => `${n} readings`,
+  in48: (h) => `in ${h} h`,
+  hoursAgo: (h) => `${h} h ago`,
+  now: 'now',
 
   harvestPoint: 'harvest point',
   harvestZone: 'harvest zone',

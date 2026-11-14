@@ -1,8 +1,8 @@
 # Hanan Qocha
 
-**NASA Space Apps Challenge 2026 · Sede Arequipa** · Desafío *Field Shift*.
+**NASA Space Apps Challenge 2026 · Sede Arequipa** · Desafío *Adapting Farms with NASA Data*.
 
-Hanan Qocha (quechua: "laguna de arriba") ayuda a los productores de cushuro (*Nostoc sphaericum*) a encontrar las cochas donde mejor crece y a manejarlas, combinando satélite NASA, el sensor in situ **Qocha Ñawi** y el gemelo digital **Qocha Twin**.
+Hanan Qocha (quechua: "laguna de arriba") es una herramienta de apoyo a la decisión para fincas altoandinas. Compara estrategias de manejo, entre ellas sumar el cushuro (*Nostoc sphaericum*) de las cochas, combinando satélite NASA, el sensor in situ **Qocha Ñawi** y el gemelo digital **Qocha Twin**.
 
 Plan completo: [docs/HANAN_QOCHA_PROYECTO.md](docs/HANAN_QOCHA_PROYECTO.md)
 

@@ -1,7 +1,8 @@
 # Hanan Qocha: plan del proyecto
 
 **NASA Space Apps Challenge 2026 · Sede Arequipa · 14–15 de noviembre**
-Desafío base: *Field Shift*, para obtener datos in situ en tierras andinas áridas que se puedan extrapolar a la exploración espacial.
+Desafío base: *Adapting Farms with NASA Data*: una herramienta de apoyo a la decisión que use observaciones NASA para que los agricultores exploren estrategias de rotación que mejoren la salud del suelo y los adapten al clima cambiante.
+Plan de respaldo: *Field Shift* (datos in situ en tierras andinas áridas), si no se logra sustentar el planteamiento de la sección 1.1.
 
 > Documento de trabajo del equipo. Las cifras llevan su fuente al final. Los valores marcados **[completar]** solo se ponen si son reales.
 
@@ -36,9 +37,28 @@ En los Andes altos es difícil que la carne fresca o los suplementos de hierro l
 2. **Qocha Ñawi**, un sensor in situ: cómo está el agua ahora.
 3. **Qocha Twin**, un gemelo digital con visión artificial: cuánto va a crecer, qué hacer y cuándo cosechar.
 
-**Usuario principal:** el productor o recolector de cushuro, al que llamamos "acuicultor".
+**Usuario principal:** el productor altoandino, dueño de una finca con terrenos de cultivo y, cuando la tiene, una cocha. Quien maneja el cushuro lo llamamos "acuicultor".
 **Zona piloto:** bofedales de la Reserva Nacional de Salinas y Aguada Blanca (Arequipa).
 **Ángulo espacial:** el mismo conjunto de sensores, modelo y cámara serviría para monitorear un fotobiorreactor de cianobacterias en un hábitat lunar o marciano.
+
+### 1.1 Pregunta del proyecto y alineación con el reto
+
+**Pregunta central:** ¿puede el cushuro entrar como componente en el sistema de manejo de una finca altoandina, junto a sus cultivos y su descanso de terreno, y qué estrategia combina mejor agua, nitrógeno e ingreso según el clima?
+
+Hanan Qocha mantiene su identidad (cochas, cushuro, Qocha Ñawi, Qocha Twin) y suma un nivel superior: la **finca** como unidad de decisión. La pregunta anterior, *¿en qué ambientes acuáticos puede crecer el cushuro y cómo monitorear y mejorar su producción?*, pasa a ser el módulo que responde si la cocha puede sumar a la rotación.
+
+| El reto pide | Cómo lo cubrimos | Dónde |
+|---|---|---|
+| Datos NASA (SMAP, ECOSTRESS, GPM, Landsat/MODIS, SRTM) | Pilar 1 satélite; NASA POWER y GRACE son opcionales | 4.1 |
+| Armonizar resoluciones en una grilla común | Agregado por finca y por cocha | 4.1 |
+| Comparar al menos 3 estrategias, incluida la actual | Módulo de estrategias de manejo | 4.4 |
+| Por qué, evidencia, beneficios, vacíos y riesgos de cada estrategia | Ficha de estrategia | 4.4 |
+| Prioridades del agricultor (agua, ingreso, nitrógeno) | Entradas del productor en el comparador | 4.4, 6 |
+| Sliders de escenario (lluvia, temperatura) | Sliders del gemelo | 4.3 |
+| Datos de campo frente a satélite, y su incertidumbre | Qocha Ñawi y visión validan al satélite | 4.2, 13 |
+| Apoyar, no reemplazar al agricultor | Aviso en cada ficha y sección 13 | 4.4, 13 |
+
+**Alcance honesto:** el aporte del cushuro al suelo de los terrenos vecinos es una **hipótesis**, no un hecho: es un organismo acuático y no hay evidencia confirmada de ese uso. La herramienta lo declara como vacío de información en lugar de darlo por cierto.
 
 ---
 
@@ -106,6 +126,7 @@ En los Andes altos es difícil que la carne fresca o los suplementos de hierro l
 | Sensor de TDS o conductividad | Variable clave: el cushuro exige agua con pocos sólidos disueltos |
 | Turbidez | Claridad del agua y luz disponible (reutiliza la experiencia del sensor de turbidez autónomo de Paolo) |
 | pH, temperatura del agua y del aire | Condiciones de crecimiento |
+| Humedad del suelo (en terreno y orilla de la cocha) | Dato de suelo in situ: valida a SMAP, que no distingue una finca (9 km), y alimenta las estrategias de la sección 4.4 |
 | Sensor UV o PAR | Radiación |
 | Nivel de agua | Si la cocha se seca o se desborda |
 | Cámara time-lapse | Insumo de la visión artificial |
@@ -128,10 +149,32 @@ biomasa(t+1) = biomasa(t) · (1 + tasa_diaria) · (1 − biomasa(t)/capacidad)  
 - En pantalla, el productor mueve sliders (temperatura, UV, TDS, profundidad) y ve cómo cambia la curva proyectada.
 - El modelo devuelve una **acción recomendada**: "aumentar sombra", "renovar agua", "cosechar el 70 % y dejar el 30 %", "esperar 2 semanas".
 
-**Visión artificial**:
-- Segmenta las colonias en las fotos de la cámara, al principio por color en espacio HSV con OpenCV.
-- Devuelve `cobertura_pct` y `biomasa_kg` estimada.
-- **Cierra el ciclo:** compara la curva **proyectada** con la curva **real** medida por la cámara y recalibra el modelo.
+**Visión artificial (simulada en el hackathon):**
+- No se entrena ningún modelo. La demo muestra una foto con las colonias marcadas (máscara dibujada o segmentación simple por color en HSV con OpenCV) y un `vision.json` de ejemplo con `cobertura_pct` y `biomasa_kg`.
+- Es solo una escena de unos segundos en el video: el esfuerzo debe ser mínimo.
+- **Idea que se presenta (no implementada):** una cámara mediría el crecimiento real y lo compararía con la curva **proyectada** para recalibrar el modelo. Se declara como trabajo futuro.
+
+### 4.4 Módulo de estrategias de manejo (comparador de rotación)
+
+El gemelo de cada cocha alimenta una comparación **a nivel de finca**. Se comparan tres estrategias:
+
+| # | Estrategia | Papel del cushuro |
+|---|---|---|
+| 1 | **Actual:** la rotación que el productor ya practica | Ninguno |
+| 2 | **Con leguminosa:** suma una especie fijadora de nitrógeno en los terrenos | Ninguno |
+| 3 | **Con cushuro:** suma el manejo de la cocha en temporada de lluvias | Ingreso extra y, como hipótesis, aporte de nitrógeno |
+
+> Las especies y la rotación actual concretas **se definen con Ortega y con productores de la zona**. Esta tabla es un esquema, no un dato.
+
+**Ficha por estrategia** (lo que muestra la app):
+- **Por qué se sugiere** y qué evidencia la respalda (dato NASA, lectura del sensor, literatura).
+- **Beneficios esperados:** uso de agua, nitrógeno, cobertura del terreno, ingreso.
+- **Vacíos de información** y **riesgos** que requieren revisión local.
+- Aviso: *"Esta herramienta apoya la decisión; no reemplaza el criterio del productor ni de un experto agrícola."*
+
+**Prioridades del productor** (entradas): ahorrar agua, ingreso extra, mejorar el suelo. Reordenan las estrategias sin cambiar la evidencia.
+
+**Evidencia por estrategia:** indicadores simples y explicables a partir de la grilla común: humedad del suelo (SMAP), lluvia (GPM), temperatura y estrés térmico (ECOSTRESS/MODIS), vegetación (Landsat/MODIS, NDVI) y riesgo de helada. La incertidumbre se muestra como rango, no como cifra única.
 
 ---
 
@@ -150,6 +193,8 @@ IAC = 0,4 · indice_satelital + 0,4 · indice_in_situ + 0,2 · indice_vision
 | ≥ 0,7 | Apta | "Buena cocha para sembrar o manejar" |
 | 0,4–0,7 | Condicional | "Mejorar: sombra, profundidad o flujo de agua" |
 | < 0,4 | No apta | "Buscar otra cocha" |
+
+**Papel del IAC en el comparador:** es la evidencia de la estrategia 3. Con IAC bajo, la estrategia con cushuro se marca como no recomendada para esa finca.
 
 ---
 
@@ -170,6 +215,11 @@ IAC = 0,4 · indice_satelital + 0,4 · indice_in_situ + 0,2 · indice_vision
 - Curva proyectada frente a la real.
 - Foto con las colonias marcadas.
 - Sliders "¿qué pasa si...?" y tarjeta de acción recomendada.
+
+**Pantalla 4: Comparador de estrategias de la finca.**
+- El productor marca sus prioridades (agua, ingreso, suelo).
+- Ve las tres estrategias lado a lado, cada una con su ficha: por qué, evidencia, beneficios, vacíos y riesgos.
+- Los sliders de lluvia y temperatura muestran cómo cambia cada estrategia.
 
 **Visión a futuro, solo en el cierre o el pitch:** un fotobiorreactor semillero que produzca inóculo fuera de temporada. Es el puente con un hábitat espacial.
 
@@ -201,7 +251,7 @@ Cinco frentes. Paolo y Adrián forman un solo frente, **Campo y Satélite**, por
 | **Liderazgo e integración** | **Jefry** | Coordinación, administración del repo, merges, guion, locución, edición del video, pitch | `docs/`, `media/` |
 | **Gemelo digital** | **Pax** | App web: mapa, ruta de cultivo, gemelo con sliders, IAC, recomendaciones | `twin/` (exclusiva de Pax) |
 | **Campo y Satélite** | **Paolo + Adrián** | Paolo: firmware del ESP32, puente de datos al gemelo, toma del sensor en el agua. Adrián: mapa de aptitud satelital, `sites.json`, auditoría de cifras y fuentes. Juntos: los contratos `sensor` y `sites`; cada uno revisa los PR del otro. | `device/`, `satellite/` |
-| **Visión artificial** | **Victor** | Script que segmenta colonias y devuelve `vision.json`. Es una tarea acotada: entra una foto y sale una cifra, adecuada para su tiempo limitado. | `vision/` |
+| **Visión artificial** | **Victor** | Simulación para la demo: una foto con colonias marcadas y un `vision.json` de ejemplo (sección 4.3). Sin entrenamiento; una tarea breve que se adapta a su tiempo limitado. | `vision/` |
 | **Productor, negocio y territorio** | **Ortega** | Perfil del acuicultor, modelo de negocio, textos de recomendaciones en lenguaje de productor (`recommendations.json`), imágenes reales del bofedal, respuestas sobre adopción | `business/`, `data/processed/recommendations.json` |
 
 **Respaldo:** si Victor no termina la visión, la toma Paolo; con segmentación por color se resuelve en pocas horas.
@@ -750,6 +800,9 @@ Con una carpeta por frente, los conflictos deberían ser raros. Casi siempre ocu
 | ¿No causará sobrecosecha? | Al contrario: el gemelo recomienda cuánto dejar para que se regenere. |
 | ¿El hierro es confiable? | Los valores reportados varían mucho entre fuentes (15,7–83,6 mg por 100 g en peso seco). Habría que medir el producto local. |
 | ¿Hubo proyectos parecidos? | Bio Peruvian Tech (Space Apps 2021) trabajó con cushuro. Nuestro aporte es el manejo productivo con satélite, sensor y gemelo digital. |
+| ¿El cushuro mejora el suelo? | No lo afirmamos. Fija nitrógeno, pero es acuático y no hay evidencia confirmada de que beneficie los terrenos vecinos. Lo declaramos como hipótesis y vacío de información, y se validaría con expertos y ensayos locales. |
+| ¿Es una herramienta de rotación o de cushuro? | Es de apoyo a la decisión de la finca. El cushuro es una de las tres estrategias comparadas, no la única. |
+| ¿De dónde salen las rotaciones y los cultivos? | De productores y expertos de la zona, a cargo de Ortega. Los ejemplos del documento son esquemas por validar. |
 | ¿Quién paga? | **[completar con Ortega]**: modelo de negocio, costo por unidad Qocha Ñawi, número de unidades del piloto. |
 
 ---
@@ -763,6 +816,8 @@ Con una carpeta por frente, los conflictos deberían ser raros. Casi siempre ocu
 - Cultivo de *Nostoc* sp. en laboratorio, Huancavelica (*Llamkasun*, 2021): <https://alicia.concytec.gob.pe/vufind/Record/REVLLAM_57ce75c1b82d635b35009b9b8ebfed04>
 - Mouga et al. (2024), *Nostoc* sp. en laboratorio, *Biology* (MDPI): <https://www.mdpi.com/2079-7737/13/5/306/htm>
 - Datos NASA: HLS, NASADEM, GPM IMERG, MODIS LST, ECOSTRESS, SMAP, OMI. Disponibles en Earthdata y Google Earth Engine.
+- Recursos de datos del reto, ordenados por frente y con su practicidad: [RECURSOS.md](RECURSOS.md).
+- Reto NASA Space Apps 2026, *Adapting Farms with NASA Data*: <https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/>
 - Documentación de GitHub: rulesets, CODEOWNERS, Pages con Actions (<https://docs.github.com>).
 
 **Material del equipo ya creado:**

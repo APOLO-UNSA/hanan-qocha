@@ -1,0 +1,74 @@
+[
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T10:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 10.1,
+  "ph": 7.0,
+  "uv_index": 8.7
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T16:00:00-05:00",
+  "tds_ppm": 38,
+  "temp_agua_c": 12.3,
+  "ph": 7.3,
+  "uv_index": 5.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T22:00:00-05:00",
+  "tds_ppm": 42,
+  "temp_agua_c": 9.9,
+  "ph": 7.2,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T04:00:00-05:00",
+  "tds_ppm": 42,
+  "temp_agua_c": 7.7,
+  "ph": 7.0,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T10:00:00-05:00",
+  "tds_ppm": 40,
+  "temp_agua_c": 9.8,
+  "ph": 7.0,
+  "uv_index": 8.7
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T16:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 12.4,
+  "ph": 7.3,
+  "uv_index": 5.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T22:00:00-05:00",
+  "tds_ppm": 40,
+  "temp_agua_c": 9.9,
+  "ph": 7.1,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-14T04:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 7.4,
+  "ph": 7.0,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-14T10:00:00-05:00",
+  "tds_ppm": 38,
+  "temp_agua_c": 10.1,
+  "ph": 7.0,
+  "uv_index": 8.7
+ }
+]

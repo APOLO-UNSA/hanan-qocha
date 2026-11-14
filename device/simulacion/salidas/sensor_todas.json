@@ -1,0 +1,218 @@
+[
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T10:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 10.1,
+  "ph": 7.0,
+  "uv_index": 8.7
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T16:00:00-05:00",
+  "tds_ppm": 38,
+  "temp_agua_c": 12.3,
+  "ph": 7.3,
+  "uv_index": 5.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-12T22:00:00-05:00",
+  "tds_ppm": 42,
+  "temp_agua_c": 9.9,
+  "ph": 7.2,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T04:00:00-05:00",
+  "tds_ppm": 42,
+  "temp_agua_c": 7.7,
+  "ph": 7.0,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T10:00:00-05:00",
+  "tds_ppm": 40,
+  "temp_agua_c": 9.8,
+  "ph": 7.0,
+  "uv_index": 8.7
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T16:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 12.4,
+  "ph": 7.3,
+  "uv_index": 5.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-13T22:00:00-05:00",
+  "tds_ppm": 40,
+  "temp_agua_c": 9.9,
+  "ph": 7.1,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-14T04:00:00-05:00",
+  "tds_ppm": 41,
+  "temp_agua_c": 7.4,
+  "ph": 7.0,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-01",
+  "timestamp": "2026-11-14T10:00:00-05:00",
+  "tds_ppm": 38,
+  "temp_agua_c": 10.1,
+  "ph": 7.0,
+  "uv_index": 8.7
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-12T10:00:00-05:00",
+  "tds_ppm": 186,
+  "temp_agua_c": 19.2,
+  "ph": 7.7,
+  "uv_index": 11.3
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-12T16:00:00-05:00",
+  "tds_ppm": 174,
+  "temp_agua_c": 21.9,
+  "ph": 8.0,
+  "uv_index": 6.5
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-12T22:00:00-05:00",
+  "tds_ppm": 183,
+  "temp_agua_c": 18.9,
+  "ph": 7.9,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-13T04:00:00-05:00",
+  "tds_ppm": 187,
+  "temp_agua_c": 15.8,
+  "ph": 7.6,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-13T10:00:00-05:00",
+  "tds_ppm": 171,
+  "temp_agua_c": 18.8,
+  "ph": 7.7,
+  "uv_index": 11.3
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-13T16:00:00-05:00",
+  "tds_ppm": 172,
+  "temp_agua_c": 22.0,
+  "ph": 8.0,
+  "uv_index": 6.5
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-13T22:00:00-05:00",
+  "tds_ppm": 181,
+  "temp_agua_c": 19.0,
+  "ph": 7.9,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-14T04:00:00-05:00",
+  "tds_ppm": 184,
+  "temp_agua_c": 15.9,
+  "ph": 7.6,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-02",
+  "timestamp": "2026-11-14T10:00:00-05:00",
+  "tds_ppm": 177,
+  "temp_agua_c": 19.1,
+  "ph": 7.7,
+  "uv_index": 11.3
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-12T10:00:00-05:00",
+  "tds_ppm": 254,
+  "temp_agua_c": 22.2,
+  "ph": 8.6,
+  "uv_index": 13.4
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-12T16:00:00-05:00",
+  "tds_ppm": 259,
+  "temp_agua_c": 24.9,
+  "ph": 8.9,
+  "uv_index": 7.7
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-12T22:00:00-05:00",
+  "tds_ppm": 265,
+  "temp_agua_c": 21.9,
+  "ph": 8.8,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-13T04:00:00-05:00",
+  "tds_ppm": 250,
+  "temp_agua_c": 18.8,
+  "ph": 8.6,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-13T10:00:00-05:00",
+  "tds_ppm": 255,
+  "temp_agua_c": 21.9,
+  "ph": 8.6,
+  "uv_index": 13.4
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-13T16:00:00-05:00",
+  "tds_ppm": 263,
+  "temp_agua_c": 25.0,
+  "ph": 8.9,
+  "uv_index": 7.7
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-13T22:00:00-05:00",
+  "tds_ppm": 251,
+  "temp_agua_c": 22.0,
+  "ph": 8.8,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-14T04:00:00-05:00",
+  "tds_ppm": 265,
+  "temp_agua_c": 18.9,
+  "ph": 8.5,
+  "uv_index": 0.0
+ },
+ {
+  "cocha_id": "SIM-03",
+  "timestamp": "2026-11-14T10:00:00-05:00",
+  "tds_ppm": 262,
+  "temp_agua_c": 21.9,
+  "ph": 8.6,
+  "uv_index": 13.4
+ }
+]

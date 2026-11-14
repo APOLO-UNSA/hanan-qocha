@@ -1,0 +1,26 @@
+[
+ {
+  "cocha_id": "SIM-01",
+  "nombre": "Cocha simulada 01 · agua propicia",
+  "lat": -15.781,
+  "lon": -71.334,
+  "altitud_m": 4385,
+  "indice_satelital": 0.85
+ },
+ {
+  "cocha_id": "SIM-02",
+  "nombre": "Cocha simulada 02 · agua medianamente apta",
+  "lat": -15.921,
+  "lon": -71.215,
+  "altitud_m": 4220,
+  "indice_satelital": 0.6
+ },
+ {
+  "cocha_id": "SIM-03",
+  "nombre": "Cocha simulada 03 · agua débil",
+  "lat": -16.261,
+  "lon": -71.152,
+  "altitud_m": 3980,
+  "indice_satelital": 0.3
+ }
+]

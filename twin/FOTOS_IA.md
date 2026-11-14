@@ -38,21 +38,27 @@ con la versión sintética.
 ## 3. Marcar las fotos con la visión
 
 ```bash
-# 1. Guarda las imágenes con el nombre exacto en twin/fotos-fuente/ (jpg, png o webp; se recortan a 4:3)
-# 2. Márcalas: segmenta las colonias dentro del agua y dibuja máscara, contornos, cajas y panel
-python twin/scripts/marcar-fotos.py --roi-arriba 0.15 --depurar
-# 3. Revisa las máscaras (*-mascara.png) y ajusta el rango de color si hace falta:
-python twin/scripts/marcar-fotos.py --h 12 50 --s 50 --v 20 220 --agua-h 70 120
+# 1. Guarda las imágenes con el nombre exacto en twin/fotos-fuente/ (jpg, png o webp; se recortan a 4:3).
+#    Esa carpeta no se sube al repo (pesa mucho): solo se publican las fotos marcadas.
+# 2. Si es una cámara nueva, traza el contorno del agua en scripts/roi-camaras.json (coordenadas 0–1 de la foto 4:3).
+# 3. Márcalas:
+python twin/scripts/marcar-fotos.py --depurar      # --depurar dibuja el contorno del agua usado
 ```
 
-- `--h`, `--s`, `--v`: rango HSV de OpenCV del cushuro (tono 0–179). Si marca poco, ensancha `--h` o baja `--s`.
-- `--agua-h`: tono del agua; la búsqueda se limita al espejo de agua para no marcar el pasto de la orilla.
-- `--roi-arriba`: fracción superior de la foto que se ignora (cielo y cerros).
-- `--etiqueta`: aviso visible en la foto. Por defecto dice **"IMAGEN GENERADA CON IA, DEMO DE CONCEPTO"**; con fotos
-  reales de la cámara usa `--etiqueta ""`.
+**Cómo detecta.** En fotos reales, el color solo no alcanza: el fondo de turba, las piedras y el pasto tienen el mismo
+tono que el cushuro. El script busca la **forma**: círculos (transformada de Hough) dentro del espejo de agua, por franjas
+de profundidad con el radio esperado por la perspectiva, y verifica cada uno por color oliva/pardo, borde nítido en la
+mayor parte del contorno (ese valor es la confianza que aparece en las cajas), brillo especular y contraste con el agua.
 
-El script imprime cuántas colonias detectó y la cobertura medida sobre el agua de cada foto, junto al valor que tiene
-`vision.json`. Si se quiere que la app use lo medido, hay que llevar esos valores a `vision.json`.
+Ajustes: `--h`, `--s`, `--v` (rango HSV de OpenCV del cushuro), `--min-soporte` (borde mínimo, 0–1) y `--etiqueta`
+(por defecto **"IMAGEN GENERADA CON IA, DEMO DE CONCEPTO"**; con fotos reales de la cámara usa `--etiqueta ""`).
+
+El script imprime cuántas colonias detectó y la cobertura medida sobre el agua. En la foto solo se muestran las colonias
+detectadas y la biomasa de `vision.json`, para no contradecir la cobertura que muestra la app. Si se quiere que la app use
+lo medido, hay que llevar esos valores a `vision.json`.
+
+> **Hecho el 14/11:** las series de DEMO-01 (8) y DEMO-02 (6) se generaron con Gemini (imagen base + ediciones "la misma
+> cocha unos días antes") y se marcaron con este script.
 
 ## 4. Antes de publicar
 

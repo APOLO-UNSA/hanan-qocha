@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Fotos de origen (generadas con IA o de la cámara): pesan mucho; solo se publican las marcadas en public/demo/fotos
+fotos-fuente/

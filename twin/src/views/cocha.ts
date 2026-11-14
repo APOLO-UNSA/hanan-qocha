@@ -119,9 +119,12 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     const msg = $('#estado-msg')
     msg.style.borderColor = info.color
     msg.textContent = info.msg
-    $('#ruta').innerHTML = ETAPAS.map(
-      (e, i) => `<li class="${i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''}"><b>${e.t}</b><small>${e.s}</small></li>`,
-    ).join('')
+    // La primera etapa muestra la aptitud real según el IAC (Apta / Condicional / No apta).
+    $('#ruta').innerHTML = ETAPAS.map((e, i) => {
+      const cls = i < st.etapa ? 'done' : i === st.etapa ? 'now' : ''
+      if (i > 0) return `<li class="${cls}"><b>${e.t}</b><small>${e.s}</small></li>`
+      return `<li class="${cls} aptitud ${st.estado}" style="--c:${info.color}"><b>${info.label}</b><small>IAC ${pct(st.iac)} · satélite + sensor</small></li>`
+    }).join('')
     $('#indices').innerHTML = `
       <div><span>Satélite</span><b>${pct(site.indice_satelital)}</b><small>×0,4</small></div>
       <div><span>In situ</span><b>${pct(st.indice_in_situ)}</b><small>×0,4</small></div>

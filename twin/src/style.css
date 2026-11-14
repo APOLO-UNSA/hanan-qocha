@@ -120,3 +120,10 @@ h3 { margin-top: 1.75rem; }
 @keyframes flash { from { background: #fff3c4; } to { background: transparent; } }
 .readings .up, .readings .down { color: var(--muted); font-style: normal; font-size: .75em; }
 .stale { color: var(--warn); font-weight: 600; }
+
+/* Primera etapa de la ruta: aptitud real según el IAC */
+.ruta li.aptitud { border-color: var(--c); }
+.ruta li.aptitud.now { background: color-mix(in srgb, var(--c) 12%, var(--card)); }
+.ruta li.aptitud b::before { content: '✓ '; color: var(--c); }
+.ruta li.aptitud.condicional b::before { content: '! '; }
+.ruta li.aptitud.no-apta b::before { content: '✕ '; }

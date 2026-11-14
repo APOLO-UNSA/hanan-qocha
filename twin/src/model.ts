@@ -138,9 +138,13 @@ export function cochaState(d: Dataset, site: Site): CochaState {
   const last = vis.at(-1)
 
   // Capacidad: biomasa que habría con 100 % de cobertura, estimada desde la visión.
-  const capacidad_kg =
-    last && last.cobertura_pct > 0 ? last.biomasa_kg / (last.cobertura_pct / 100) : PARAMS.capacidad_default_kg
-  const biomasa_kg = last?.biomasa_kg ?? PARAMS.biomasa_inicial_default_kg
+  // Con muy poca cobertura (< 5 %) la estimación se dispara (12 kg al 0,5 % → 2 400 kg): se usa el valor por defecto.
+  // La capacidad nunca es menor que lo ya medido, y la biomasa de partida nunca es 0 (si no, el modelo no crece).
+  const biomasa_kg = Math.max(last?.biomasa_kg ?? PARAMS.biomasa_inicial_default_kg, 0.1)
+  const capacidad_kg = Math.max(
+    last && last.cobertura_pct >= 5 ? last.biomasa_kg / (Math.min(last.cobertura_pct, 100) / 100) : PARAMS.capacidad_default_kg,
+    biomasa_kg * 1.05,
+  )
 
   // Índice in situ: promedio de las curvas de aptitud de lo que mide el sensor.
   let indice_in_situ: number | null = null

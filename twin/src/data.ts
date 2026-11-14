@@ -58,29 +58,76 @@ export function sourceUrl(src: DataSource): string {
   return u.toString()
 }
 
-async function load<T>(name: string): Promise<T[]> {
+/**
+ * Carga un archivo. Devuelve:
+ *   - la lista (vacía si el archivo no existe: es normal que falten datos reales),
+ *   - null si la carga FALLÓ (red caída, JSON a medio escribir…), para conservar los datos anteriores.
+ */
+async function load(name: string): Promise<unknown[] | null> {
   // demo: conjunto ficticio empaquetado en twin/public/demo (para video y pitch).
   const dir = DATA_SOURCE === 'demo' ? 'demo' : 'data'
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}${dir}/${name}.json`, { cache: 'no-store' })
-    if (!res.ok) return []
-    const json = await res.json()
-    return Array.isArray(json) ? json : []
-  } catch {
-    // Un archivo faltante o roto nunca debe tumbar el gemelo.
-    return []
+    if (res.status === 404) return []
+    if (!res.ok) return null
+    const json = JSON.parse(await res.text())
+    if (!Array.isArray(json)) {
+      console.warn(`[gemelo] ${name}.json no es una lista; se ignora`)
+      return null
+    }
+    return json
+  } catch (e) {
+    console.warn(`[gemelo] no se pudo leer ${name}.json:`, e)
+    return null
   }
 }
 
-export async function loadDataset(): Promise<Dataset> {
-  const [sites, sensor, vision, recommendations] = await Promise.all([
-    load<Site>('sites'),
-    load<SensorReading>('sensor'),
-    load<VisionResult>('vision'),
-    load<Recommendation>('recommendations'),
-  ])
-  const d = { sites, sensor, vision, recommendations }
-  if (DATA_SOURCE === 'demo') shiftToNow(d)
+// ---------- Saneamiento: un registro malo se descarta sin tumbar el gemelo ----------
+
+const isObj = (o: unknown): o is Record<string, unknown> => typeof o === 'object' && o !== null
+const str = (v: unknown) => typeof v === 'string' && v.trim() !== ''
+const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
+const optNum = (v: unknown) => v == null || num(v)
+const date = (v: unknown) => str(v) && Number.isFinite(Date.parse(v as string))
+
+const VALID = {
+  sites: (o: Record<string, unknown>) =>
+    str(o.cocha_id) && str(o.nombre) && num(o.lat) && num(o.lon) && Math.abs(o.lat as number) <= 90 &&
+    Math.abs(o.lon as number) <= 180 && num(o.altitud_m) && num(o.indice_satelital),
+  sensor: (o: Record<string, unknown>) =>
+    str(o.cocha_id) && date(o.timestamp) && num(o.tds_ppm) && num(o.temp_agua_c) && optNum(o.ph) && optNum(o.uv_index),
+  vision: (o: Record<string, unknown>) =>
+    str(o.cocha_id) && date(o.timestamp) && typeof o.foto === 'string' && num(o.cobertura_pct) && num(o.biomasa_kg) &&
+    (o.cobertura_pct as number) >= 0 && (o.biomasa_kg as number) >= 0,
+  recommendations: (o: Record<string, unknown>) =>
+    str(o.codigo) && typeof o.condicion === 'string' && typeof o.mensaje_es === 'string' && typeof o.mensaje_en === 'string',
+}
+
+function clean<T>(name: keyof typeof VALID, items: unknown[]): T[] {
+  const ok = items.filter((o) => isObj(o) && VALID[name](o)) as T[]
+  if (ok.length < items.length) console.warn(`[gemelo] ${name}.json: ${items.length - ok.length} registro(s) inválido(s) descartado(s)`)
+  return ok
+}
+
+/**
+ * Carga los cuatro archivos. Si alguno falla (no "falta": falla), se conserva su versión anterior en `prev`;
+ * así una lectura en vivo a medio escribir no borra el sensor de la pantalla.
+ */
+export async function loadDataset(prev?: Dataset): Promise<Dataset> {
+  const names = ['sites', 'sensor', 'vision', 'recommendations'] as const
+  const raw = await Promise.all(names.map((n) => load(n)))
+  const pick = <K extends (typeof names)[number]>(k: K, i: number): Dataset[K] =>
+    raw[i] === null ? (prev?.[k] ?? []) : (clean(k, raw[i]!) as Dataset[K])
+  const d: Dataset = {
+    sites: pick('sites', 0),
+    sensor: pick('sensor', 1),
+    vision: pick('vision', 2),
+    recommendations: pick('recommendations', 3),
+  }
+  // Un cocha_id repetido en sites.json: se queda el primero.
+  const seen = new Set<string>()
+  d.sites = d.sites.filter((s) => !seen.has(s.cocha_id) && seen.add(s.cocha_id))
+  if (DATA_SOURCE === 'demo' && !prev) shiftToNow(d)
   return d
 }
 

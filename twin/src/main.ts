@@ -35,7 +35,7 @@ function route() {
 }
 
 async function poll() {
-  data = await loadDataset()
+  data = await loadDataset(data)
   // En la ficha se actualiza en su sitio (no reinicia sliders); el mapa se vuelve a dibujar.
   if (refreshCocha) refreshCocha(data)
   else if (!location.hash.startsWith('#/cocha/')) route()

@@ -14,7 +14,7 @@ app.innerHTML = `
   <header class="topbar">
     <a href="#/" class="brand"><img src="${import.meta.env.BASE_URL}favicon.svg" alt=""> Hanan Qocha <small>Qocha Twin</small></a>
     <nav class="top-right">
-      <span class="src" title="${t.dataSource}">${t.data}: ${DATA_SOURCE} ·
+      <span class="src" title="${t.dataSource}"><span class="src-label">${t.data}: ${DATA_SOURCE} ·</span>
         <a href="${sourceUrl(DATA_SOURCE === 'demo' ? DEFAULT_SOURCE : 'demo')}">${DATA_SOURCE === 'demo' ? t.exitDemo : t.seeDemo}</a></span>
       <span class="lang">${LANG === 'es' ? '<b>ES</b>' : `<a href="${langUrl('es')}">ES</a>`} · ${LANG === 'en' ? '<b>EN</b>' : `<a href="${langUrl('en')}">EN</a>`}</span>
     </nav>

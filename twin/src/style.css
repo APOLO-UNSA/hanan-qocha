@@ -145,3 +145,17 @@ h3 { margin-top: 1.75rem; }
 .l-fit { border-color: #e07a2e !important; opacity: .7; }
 .calib { margin: .5rem 0 0; padding: .4rem .6rem; background: #fdf1e7; border-radius: 6px; color: var(--ink); }
 .calib.muted { background: var(--bg); color: var(--muted); }
+
+/* Celular */
+.brand { white-space: nowrap; }
+@media (max-width: 560px) {
+  .topbar { padding: .5rem .75rem; gap: .5rem; }
+  .brand { font-size: 1rem; }
+  .brand small, .src-label { display: none; }
+  .top-right { gap: .35rem; }
+  .src, .lang { white-space: nowrap; }
+  .page { padding: .75rem; }
+  .cocha-head h2 { font-size: 1.25rem; }
+  .card { padding: .8rem; }
+  .chart-legend { gap: .3rem .8rem; }
+}

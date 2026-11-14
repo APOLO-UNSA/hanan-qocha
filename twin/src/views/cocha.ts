@@ -177,7 +177,8 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
       bar.style.background = f[sl.key] >= 0.7 ? '#2e9d5b' : f[sl.key] >= 0.4 ? '#e0a526' : '#c8473b'
     }
     const alpha = st.calib?.alpha ?? 1
-    $('#chart').innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha) + calibHtml(st.calib)
+    const chartEl = $('#chart')
+    chartEl.innerHTML = chartSvg(vis, st.biomasa_kg, st.capacidad_kg, base, cond, alpha, chartEl.clientWidth) + calibHtml(st.calib)
     $('#actions').innerHTML = recommend(cond, st.biomasa_kg, st.capacidad_kg, d.recommendations, alpha, {
       ph: st.sensor?.ph,
     })
@@ -205,6 +206,16 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
 
   renderState()
   renderScenario()
+
+  // Si cambia el ancho (giro del celular, ventana), se redibuja la curva a su nuevo tamaño.
+  let lastW = $('#chart').clientWidth
+  new ResizeObserver(() => {
+    const w = $('#chart').clientWidth
+    if (Math.abs(w - lastW) > 8) {
+      lastW = w
+      renderScenario()
+    }
+  }).observe($('#chart'))
 
   return (nd: Dataset) => {
     const ns = nd.sites.find((s) => s.cocha_id === id)
@@ -260,8 +271,10 @@ function chartSvg(
   base: Conditions,
   cond: Conditions,
   alpha = 1,
+  width = 640, // ancho real del contenedor: el SVG se dibuja a ese tamaño para que el texto no se encoja en el celular
 ): string {
-  const W = 640, H = 260, L = 44, R = 24, T = 12, B = 30
+  const W = Math.round(Math.min(Math.max(width || 640, 300), 640))
+  const H = W < 480 ? 220 : 260, L = 40, R = 20, T = 12, B = 30
   const t0 = vis.length ? Date.parse(vis[0].timestamp) : Date.now()
   const startDay = vis.length ? Math.round((Date.parse(vis.at(-1)!.timestamp) - t0) / DAY) : 0
   const maxDay = startDay + HORIZON_DAYS
@@ -280,7 +293,8 @@ function chartSvg(
   const umbral = PARAMS.umbral_cosecha * K
 
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * yMax)
-  const step = maxDay > 60 ? 7 * Math.ceil(maxDay / 6 / 7) : 15 // semanas si el eje es largo
+  const nTicks = W < 480 ? 4 : 6
+  const step = maxDay > 60 ? 7 * Math.ceil(maxDay / nTicks / 7) : 15 // semanas si el eje es largo
   const xTicks = Array.from({ length: Math.floor(maxDay / step) + 1 }, (_, i) => i * step)
 
   return `

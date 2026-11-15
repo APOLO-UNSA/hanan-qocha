@@ -57,13 +57,25 @@ Todas las URL llevan `video=1` (modo presentación) y `lang=en` (el video va en 
 
 ## Tomas grabadas automáticamente
 
-`twin/scripts/grabar-tomas.mjs` graba estas mismas tomas como **MP4 1920×1080 a 30 fps**, con un cursor visible que
-mueve el slider, hace clic en las miniaturas y en la cocha del mapa. Usa Chrome sin ventana (protocolo DevTools) y ffmpeg:
+`twin/scripts/grabar-tomas.mjs` graba las tomas como **MP4 1920×1080 a 30 fps**, con un cursor visible que usa la app
+(filtros, pines, sliders, miniaturas, prioridades). La del celular sale vertical (780×1608).
 
 ```bash
-node twin/scripts/grabar-tomas.mjs ../tomas-gemelo                       # app publicada, datos de demo, en inglés
-node twin/scripts/grabar-tomas.mjs ../tomas-gemelo "https://apolo-unsa.github.io/hanan-qocha/?lang=en&video=1"   # datos reales
+node twin/scripts/grabar-tomas.mjs ../tomas-gemelo/en en     # app publicada, en inglés (para el video)
+node twin/scripts/grabar-tomas.mjs ../tomas-gemelo/es es     # en español
+node twin/scripts/montaje.mjs ../tomas-gemelo/en en          # video de presentación ya editado
 ```
 
-Salen `pax-1-curva.mp4`, `pax-2-cosecha.mp4`, `pax-3-colonias.mp4` y `extra-mapa-vuelo.mp4`. En modo presentación, en
-pantallas anchas, la curva queda junto a "What if…?" y la acción para que todo entre en una toma.
+| Toma | Qué se ve |
+|---|---|
+| `extra-mapa-vuelo.mp4` | Caen los pines, filtros (aptas / no aptas), resaltado lista ↔ pin, vuelo a la Cocha 01 |
+| `extra-ficha.mp4` | Anillo del IAC, ruta de cultivo, lectura del sensor e historial de 48 h |
+| `pax-3-colonias.mp4` | La serie de fotos con colonias marcadas |
+| `pax-1-curva.mp4` | El cursor recorre la curva y el slider de TDS la cambia |
+| `pax-2-cosecha.mp4` | La curva se dibuja y la acción "Cosechar 30,9 kg" |
+| `extra-comparador.mp4` | Prioridades que reordenan las estrategias, sequía y una cocha no apta |
+| `extra-movil.mp4` | La ficha en el celular, de arriba abajo |
+
+`presentacion-gemelo-<idioma>.mp4` (~1:45, sin audio) monta todo con portada, laptop y celular, textos, transiciones y
+cierre; `escenas-<idioma>/` tiene cada escena suelta para recortar. Para el bloque de 5 s del video de 30 s sirven
+`escenas-en/04-curva.mp4` y `escenas-en/03-colonias.mp4`, o las tomas en bruto `pax-*`.

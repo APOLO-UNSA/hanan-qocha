@@ -2,7 +2,8 @@
 // con el texto de cada escena. También guarda las pantallas sueltas en <salida>/pantallas.
 //
 //   node twin/scripts/capturas.mjs [carpeta-salida] [idioma: es|en] [url-base]
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdirSync, writeFileSync, rmSync, readdirSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { tmpdir } from 'node:os'
@@ -82,4 +83,10 @@ try {
 } finally {
   await nav.cerrar()
   rmSync(tmp, { recursive: true, force: true })
+}
+
+// Las pantallas sueltas se guardan en JPG (los PNG solo hacían falta para componer las maquetas)
+for (const f of readdirSync(PANT).filter((n) => n.endsWith('.png'))) {
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', join(PANT, f), '-q:v', '2', join(PANT, f.replace(/\.png$/, '.jpg'))])
+  rmSync(join(PANT, f))
 }

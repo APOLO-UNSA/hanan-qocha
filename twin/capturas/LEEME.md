@@ -1,15 +1,20 @@
 # Capturas del gemelo para las diapositivas
 
-3200×1800 px (16:9), tomadas de la app publicada en español. Para la diapositiva "Hanan Qocha" (la app).
+Imágenes de 3840×2160 (16:9, 4K) en español: pantallas reales de la app montadas en una laptop o un celular, con
+el texto de cada escena y la identidad visual de Hanan Qocha. Listas para poner a pantalla completa en una diapositiva.
 
 | Archivo | Qué muestra |
 |---|---|
-| `01-mapa.jpg` | Mapa de las 12 cochas con su IAC, resumen de la zona y próximas cosechas |
-| `02-ficha.jpg` | Ficha de una cocha: IAC 94 (satélite, sensor, cámara) y ruta de cultivo |
-| `03-ficha-sensor-y-camara.jpg` | Lectura del Qocha Ñawi, historial de 48 h y foto con colonias detectadas |
-| `04-ficha-curva-y-accion.jpg` | Curva de biomasa recalibrada con las fotos y la acción recomendada (cosechar 30,9 kg, dejar 30 %) |
-| `05-comparador.jpg` | Comparador de estrategias de la finca (reto *Adapting Farms with NASA Data*) |
-| `06-comparador-estrategias.jpg` | Las tres estrategias con datos NASA, prioridades y ficha de evidencia |
-| `07-comparador-cocha-no-apta.jpg` | Con una cocha no apta, el cushuro sale "No recomendada para esta finca" |
+| `00-portada.jpg` | Qocha Twin en laptop (mapa) y celular (ficha), con el nombre y el lema |
+| `01-mapa.jpg` | ¿Dónde? Las 12 cochas con su IAC, filtros y próximas cosechas |
+| `02-ficha.jpg` | ¿Sirve esta cocha? Ficha con el IAC (satélite, sensor, cámara) y la ruta de cultivo |
+| `03-agua-y-colonias.jpg` | El sensor Qocha Ñawi con su historial y la foto con colonias detectadas |
+| `04-curva.jpg` | ¿Cuándo cosechar? Curva de biomasa recalibrada y escenarios |
+| `05-cosecha.jpg` | ¿Cuánto cosechar? "Cosechar 30,9 kg y dejar el 30 %", en el celular |
+| `06-comparador.jpg` | ¿Qué le conviene a la finca? Tres estrategias con datos NASA (reto *Adapting Farms*) |
+| `07-celular.jpg` | En el celular del productor: se instala como app y funciona sin conexión |
 
-Regenerar (necesita Chrome y Node ≥ 22): `node twin/scripts/capturas.mjs` (en inglés: `node twin/scripts/capturas.mjs twin/capturas-en "" en`).
+`pantallas/` tiene las pantallas sueltas (sin marco) por si se quieren usar de otra forma.
+
+La versión en inglés y el video de presentación están fuera del repo (pesan mucho): carpeta `tomas-gemelo/` junto al
+repositorio, o regenerarlos con los comandos de `twin/README.md` ("Presentación: tomas, capturas y montaje").

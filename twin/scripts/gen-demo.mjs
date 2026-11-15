@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 const OUT = resolve(import.meta.dirname, '../public/demo')
-rmSync(OUT, { recursive: true, force: true })
+// Solo se reemplazan los JSON: las fotos de public/demo/fotos las generan gen-fotos.py y marcar-fotos.py
 mkdirSync(resolve(OUT, 'fotos'), { recursive: true })
 
 // PRNG con semilla (mulberry32)

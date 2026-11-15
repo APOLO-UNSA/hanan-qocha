@@ -4,6 +4,7 @@
 
 import type { Dataset, Site } from './data'
 import { cochaState, conditionsFrom, PARAMS, project, type CochaState } from './model'
+import { cercano, type Zona } from './zona'
 
 export type EstrategiaId = 'actual' | 'leguminosa' | 'cushuro'
 
@@ -37,13 +38,24 @@ export interface Evaluacion {
   cosechaKg?: number
 }
 
-/** Datos NASA de la finca en una grilla común (agregados a la finca). Simulados a partir de la cocha y del escenario. */
+/** Un dato de la finca: valor, de dónde sale y si es medido (real) o estimado por el modelo. */
+export interface Dato {
+  v: number
+  fuente: string
+  fecha?: string // fecha o periodo del dato real
+  real: boolean
+}
+
+/**
+ * Datos NASA de la finca en una grilla común. Con zona.json (datos reales del frente Campo y Satélite) parten de lo
+ * medido; sin él, se estiman. El escenario (lluvia, temperatura) se aplica encima en los dos casos.
+ */
 export interface DatosFinca {
-  smap: number // humedad del suelo SMAP (m³/m³)
-  gpm: number // lluvia de la temporada GPM IMERG (mm)
-  lst: number // temperatura de superficie ECOSTRESS/MODIS (°C, mediodía)
-  ndvi: number // vegetación Landsat/MODIS
-  heladas: number // noches con helada en la temporada
+  smap: Dato // humedad del suelo (m³/m³)
+  gpm: Dato // lluvia de la temporada (mm)
+  lst: Dato // temperatura de superficie (°C)
+  ndvi: Dato // vegetación alrededor de la cocha
+  heladas: Dato // noches con helada en el año
 }
 
 const clamp = (x: number, a = 0, b = 100) => Math.max(a, Math.min(b, x))
@@ -54,13 +66,29 @@ const ind = (v: number, inc: number, hip?: number): Indicador => ({
   ...(hip ? { hipotesis: hip } : {}),
 })
 
-export function datosFinca(site: Site, e: Escenario): DatosFinca {
+export function datosFinca(site: Site, e: Escenario, zona?: Zona | null): DatosFinca {
+  const seca = Math.max(0, -e.lluvia)
+  const clima = zona ? cercano(site, zona.clima, 40) : undefined
+  // La cocha detectada por satélite más cercana (a menos de 5 km) da la temperatura de superficie y la vegetación
+  const det = zona ? cercano(site, zona.detectadas, 5) : undefined
+  const eco = det && zona?.ecostress[det.id]
+  const smap = zona?.smap
   return {
-    smap: +((0.2 + 0.1 * site.indice_satelital) * (1 + 0.8 * e.lluvia)).toFixed(2),
-    gpm: Math.round(520 * (1 + e.lluvia)),
-    lst: +(16 - (site.altitud_m - 4000) / 120 + e.temp).toFixed(1),
-    ndvi: +(0.25 + 0.2 * site.indice_satelital - 0.08 * Math.max(0, -e.lluvia)).toFixed(2),
-    heladas: Math.max(0, Math.round(60 + (site.altitud_m - 4300) / 25 - 8 * e.temp)),
+    smap: smap
+      ? { v: +(smap.humedad * (1 + 0.8 * e.lluvia)).toFixed(2), fuente: 'SMAP', fecha: smap.fecha, real: true }
+      : { v: +((0.2 + 0.1 * site.indice_satelital) * (1 + 0.8 * e.lluvia)).toFixed(2), fuente: 'SMAP', real: false },
+    gpm: clima
+      ? { v: Math.round(clima.lluvia_temporada_mm * (1 + e.lluvia)), fuente: 'NASA POWER', fecha: clima.temporada, real: true }
+      : { v: Math.round(520 * (1 + e.lluvia)), fuente: 'GPM IMERG', real: false },
+    lst: eco
+      ? { v: +(eco.lst_c + e.temp).toFixed(1), fuente: `ECOSTRESS, ${det!.id}`, fecha: eco.fecha, real: true }
+      : { v: +(16 - (site.altitud_m - 4000) / 120 + e.temp).toFixed(1), fuente: 'ECOSTRESS, MODIS', real: false },
+    ndvi: det
+      ? { v: +(det.ndvi_anillo - 0.08 * seca).toFixed(2), fuente: `Sentinel-2, ${det.id}`, fecha: det.fecha ?? undefined, real: true }
+      : { v: +(0.25 + 0.2 * site.indice_satelital - 0.08 * seca).toFixed(2), fuente: 'Landsat, MODIS', real: false },
+    heladas: clima
+      ? { v: Math.max(0, Math.round(clima.heladas_anio * (1 - 0.18 * e.temp))), fuente: 'NASA POWER', fecha: `${clima.hasta.slice(0, 4)}`, real: true }
+      : { v: Math.max(0, Math.round(60 + (site.altitud_m - 4300) / 25 - 8 * e.temp)), fuente: 'MODIS LST', real: false },
   }
 }
 

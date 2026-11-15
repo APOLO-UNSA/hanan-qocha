@@ -5,8 +5,9 @@ import type { Dataset } from '../data'
 import { visionSeries } from '../data'
 import { cochaState, conditionsFrom, ESTADO_INFO, PARAMS, project, type CochaState } from '../model'
 import { esc, pct, VIDEO } from '../ui'
-import { IAC, t } from '../i18n'
+import { IAC, LANG, t } from '../i18n'
 import { iacRing, miniRing, pinHtml } from '../art'
+import { fechaCorta, ZONA } from '../zona'
 
 let map: L.Map | undefined
 
@@ -107,6 +108,8 @@ export function renderMap(root: HTMLElement, d: Dataset) {
             .join('')}
         </ul>
 
+        ${zonaHtml()}
+
         <div class="iac-como">
           ${iacRing(
             [
@@ -141,6 +144,19 @@ export function renderMap(root: HTMLElement, d: Dataset) {
     .layers({ [t.satellite]: satGroup, [t.relief]: relieve }, undefined, { position: 'topright' })
     .addTo(map)
   L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map)
+
+  // Cuerpos de agua detectados con Sentinel-2 + SRTM (datos reales del frente Campo y Satélite)
+  for (const c of ZONA?.detectadas ?? []) {
+    const eco = ZONA!.ecostress[c.id]
+    L.circleMarker([c.lat, c.lon], { radius: 5 + Math.sqrt(c.area_ha) * 3, className: 'agua-det', interactive: true })
+      .addTo(map)
+      .bindTooltip(
+        `<b>${t.detectedPond} ${c.id}</b><br>${c.area_ha} ha, ${c.altitud_m} m, NDWI ${c.ndwi}` +
+          (eco ? `<br>ECOSTRESS ${eco.lst_c} °C (${fechaCorta(eco.fecha, LANG)})` : '') +
+          `<br><small>Sentinel-2${c.fecha ? `, ${fechaCorta(c.fecha, LANG)}` : ''}</small>`,
+        { direction: 'top' },
+      )
+  }
 
   const bounds: L.LatLngTuple[] = []
   // Las mejores cochas se dibujan encima; la animación de entrada va de la más apta a la menos.
@@ -204,4 +220,23 @@ export function renderMap(root: HTMLElement, d: Dataset) {
   }
   encuadrar()
   requestAnimationFrame(encuadrar)
+}
+
+/** Datos satelitales reales de la zona (zona.json); vacío si no hay. */
+function zonaHtml(): string {
+  const z = ZONA
+  if (!z) return ''
+  const clima = z.clima[0]
+  const fila = (valor: string, texto: string, fuente: string) =>
+    `<li><b>${valor}</b><span>${texto}<small>${fuente}</small></span></li>`
+  const det = z.detectadas
+  return `<div class="zona-nasa">
+    <p class="mini-h">${t.zoneData}</p>
+    <ul>
+      ${det.length ? fila(String(det.length), t.zoneDetected, `Sentinel-2 + SRTM${det[0].fecha ? `, ${fechaCorta(det[0].fecha, LANG)}` : ''}`) : ''}
+      ${z.smap ? fila(`${z.smap.humedad}`, t.zoneSoil, `SMAP, ${fechaCorta(z.smap.fecha, LANG)}`) : ''}
+      ${clima ? fila(`${clima.lluvia_temporada_mm} mm`, t.zoneRain(clima.temporada), 'NASA POWER') : ''}
+      ${clima ? fila(String(clima.heladas_anio), t.zoneFrost, 'NASA POWER') : ''}
+    </ul>
+  </div>`
 }

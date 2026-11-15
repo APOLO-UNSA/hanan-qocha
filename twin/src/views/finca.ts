@@ -4,6 +4,7 @@ import { ESTADO_INFO } from '../model'
 import { datosFinca, evaluar, type Escenario, type EstrategiaId, type Evaluacion, type Indicador, type Prioridades } from '../estrategias'
 import { esc, pct } from '../ui'
 import { IAC, LANG } from '../i18n'
+import { fechaCorta, ZONA } from '../zona'
 
 const ES = {
   back: '← Mapa', ficha: 'Ficha de la cocha',
@@ -12,8 +13,9 @@ const ES = {
   cocha: 'Cocha de la finca', prioridades: 'Tus prioridades', escenario: 'Clima de la temporada', nasa: 'Datos NASA de la finca',
   niveles: ['poco', 'medio', 'mucho'], agua: 'Ahorrar agua', ingreso: 'Ingreso extra', suelo: 'Mejorar el suelo',
   lluvia: 'Lluvia', temp: 'Temperatura', normal: 'normal',
-  smap: 'Humedad del suelo', gpm: 'Lluvia de la temporada', lst: 'Temperatura de superficie', ndvi: 'Vegetación (NDVI)', heladas: 'Noches con helada',
-  grilla: 'Grilla común de 1 km agregada a la finca. SMAP (9 km) no distingue terrenos: el sensor en la orilla lo valida.',
+  smap: 'Humedad del suelo', gpm: 'Lluvia de la temporada', lst: 'Temperatura de superficie', ndvi: 'Vegetación junto a la cocha (NDVI)', heladas: 'Noches con helada en el año',
+  medido: 'medido', estimado: 'estimado', escenarioSobre: 'escenario',
+  grilla: 'Datos reales del satélite donde los hay; los sliders aplican el escenario encima. SMAP (9 km) no distingue terrenos: el sensor en la orilla lo valida.',
   ind: { agua: 'Agua', suelo: 'Suelo y nitrógeno', ingreso: 'Ingreso' }, hip: 'hipótesis',
   mejor: 'Más alineada con tus prioridades', noRec: 'No recomendada para esta finca', puntaje: 'alineación',
   rotacion: 'Rotación (4 años)', cochaLane: 'Cocha', cosecha: (kg: string) => `cosecha proyectada: ${kg} kg de cushuro`,
@@ -31,8 +33,9 @@ const EN: Txt = {
   cocha: 'Farm pond', prioridades: 'Your priorities', escenario: 'Season climate', nasa: 'Farm NASA data',
   niveles: ['low', 'medium', 'high'], agua: 'Save water', ingreso: 'Extra income', suelo: 'Improve soil',
   lluvia: 'Rainfall', temp: 'Temperature', normal: 'normal',
-  smap: 'Soil moisture', gpm: 'Season rainfall', lst: 'Surface temperature', ndvi: 'Vegetation (NDVI)', heladas: 'Frost nights',
-  grilla: 'Common 1 km grid aggregated to the farm. SMAP (9 km) cannot see single fields: the shore sensor validates it.',
+  smap: 'Soil moisture', gpm: 'Season rainfall', lst: 'Surface temperature', ndvi: 'Vegetation by the pond (NDVI)', heladas: 'Frost nights per year',
+  medido: 'measured', estimado: 'estimated', escenarioSobre: 'scenario',
+  grilla: 'Real satellite data where available; the sliders apply the scenario on top. SMAP (9 km) cannot see single fields: the shore sensor validates it.',
   ind: { agua: 'Water', suelo: 'Soil & nitrogen', ingreso: 'Income' }, hip: 'hypothesis',
   mejor: 'Best match for your priorities', noRec: 'Not recommended for this farm', puntaje: 'match',
   rotacion: 'Rotation (4 years)', cochaLane: 'Pond', cosecha: (kg) => `projected harvest: ${kg} kg of cushuro`,
@@ -47,11 +50,11 @@ const T: Txt = LANG === 'en' ? EN : ES
 /** Textos de la ficha según la estrategia y la evidencia del momento. */
 function ficha(id: EstrategiaId, ev: Evaluacion, iac: number, d: ReturnType<typeof datosFinca>): Record<keyof Txt['secciones'], string[]> {
   const en = LANG === 'en'
-  const smapTxt = `SMAP ${d.smap} m³/m³`, gpmTxt = `GPM ${d.gpm} mm`
+  const smapTxt = `SMAP ${d.smap.v} m³/m³`, gpmTxt = `${d.gpm.fuente} ${d.gpm.v} mm`
   if (id === 'actual')
     return {
       por: [en ? 'It is what the family already knows: the baseline to compare against.' : 'Es lo que la familia ya conoce: la base para comparar.'],
-      ev: [`${smapTxt}, ${gpmTxt}`, `NDVI ${d.ndvi}`],
+      ev: [`${smapTxt}, ${gpmTxt}`, `NDVI ${d.ndvi.v}`],
       ben: [en ? 'No new costs or learning' : 'Sin costos ni aprendizajes nuevos'],
       vac: [en ? 'Actual yield of each field' : 'Rendimiento real de cada terreno'],
       rie: [en ? 'Years of potato deplete soil nitrogen' : 'Años de papa agotan el nitrógeno del suelo', en ? 'Sensitive to drought' : 'Sensible a la sequía'],
@@ -59,10 +62,10 @@ function ficha(id: EstrategiaId, ev: Evaluacion, iac: number, d: ReturnType<type
   if (id === 'leguminosa')
     return {
       por: [en ? 'A legume such as tarwi fixes nitrogen and covers the soil during the rotation.' : 'Una leguminosa como el tarwi fija nitrógeno y cubre el suelo en la rotación.'],
-      ev: [en ? `Low cover in fallow (NDVI ${d.ndvi})` : `Cobertura baja en descanso (NDVI ${d.ndvi})`, en ? 'Literature on Andean lupin' : 'Literatura sobre tarwi andino'],
+      ev: [en ? `Low cover in fallow (NDVI ${d.ndvi.v})` : `Cobertura baja en descanso (NDVI ${d.ndvi.v})`, en ? 'Literature on Andean lupin' : 'Literatura sobre tarwi andino'],
       ben: [en ? 'Nitrogen without fertilizer' : 'Nitrógeno sin fertilizante', en ? 'Better soil cover' : 'Mejor cobertura del suelo'],
       vac: [en ? 'Which species the community prefers' : 'Qué especie prefiere la comunidad', en ? 'Local grain market' : 'Mercado local del grano'],
-      rie: [en ? `Frost at flowering (${d.heladas} frost nights)` : `Helada en floración (${d.heladas} noches con helada)`, en ? 'Debittering tarwi needs water' : 'Desamargar el tarwi requiere agua'],
+      rie: [en ? `Frost at flowering (${d.heladas.v} frost nights a year)` : `Helada en floración (${d.heladas.v} noches con helada al año)`, en ? 'Debittering tarwi needs water' : 'Desamargar el tarwi requiere agua'],
     }
   return {
     por: [en ? `The farm has a pond with ${IAC} ${pct(iac)}: it can add income in the rainy season.` : `La finca tiene una cocha con ${IAC} ${pct(iac)}: puede sumar un ingreso en lluvias.`],
@@ -137,23 +140,34 @@ export function renderFinca(root: HTMLElement, d: Dataset, id: string) {
   const $ = <E extends HTMLElement = HTMLElement>(s: string) => root.querySelector<E>(s)!
   const pintar = () => {
     const { evals, st } = evaluar(d, site, esc_, pri)
-    const nasa = datosFinca(site, esc_)
+    const nasa = datosFinca(site, esc_, ZONA)
     $('#o-lluvia').textContent = esc_.lluvia === 0 ? T.normal : `${esc_.lluvia > 0 ? '+' : ''}${Math.round(esc_.lluvia * 100)} %`
     $('#o-temp').textContent = `+${esc_.temp} °C`
-    $('#nasa').innerHTML = [
-      [T.smap, `${nasa.smap} m³/m³`, 'SMAP'],
-      [T.gpm, `${nasa.gpm} mm`, 'GPM IMERG'],
-      [T.lst, `${nasa.lst} °C`, 'ECOSTRESS · MODIS'.replace(' · ', ', ')],
-      [T.ndvi, `${nasa.ndvi}`, 'Landsat, MODIS'],
-      [T.heladas, `${nasa.heladas}`, 'MODIS LST'],
-    ].map(([a, b, f]) => `<dt>${a}<small>${f}</small></dt><dd>${b}</dd>`).join('')
+    // Cada dato solo cambia con la variable del escenario que lo afecta
+    const fila = (nombre: string, dato: (typeof nasa)['smap'], unidad: string, por: 'lluvia' | 'temp') => {
+      const normal = por === 'lluvia' ? esc_.lluvia === 0 : esc_.temp === 0
+      const cuando = dato.fecha ? (/^\d{4}-\d{2}-\d{2}$/.test(dato.fecha) ? fechaCorta(dato.fecha, LANG) : dato.fecha) : ''
+      const tipo = !dato.real ? T.estimado : normal ? T.medido : T.escenarioSobre
+      return `<dt>${nombre}<small>${dato.fuente}${cuando ? `, ${cuando}` : ''}</small></dt>
+        <dd>${dato.v}${unidad}<span class="nasa-tipo ${dato.real ? (normal ? 'real' : 'esc') : 'est'}">${tipo}</span></dd>`
+    }
+    $('#nasa').innerHTML =
+      fila(T.smap, nasa.smap, ' m³/m³', 'lluvia') + fila(T.gpm, nasa.gpm, ' mm', 'lluvia') + fila(T.lst, nasa.lst, ' °C', 'temp') +
+      fila(T.ndvi, nasa.ndvi, '', 'lluvia') + fila(T.heladas, nasa.heladas, '', 'temp')
     const info = ESTADO_INFO[st.estado]
     const COL = { actual: '#635d6e', leguminosa: '#3b7a4c', cushuro: '#2c8c8f' } as const
-    $('#estrategias').innerHTML = evals
+    // Antes de volver a pintar: posición de cada tarjeta y ancho de cada barra, para animar el cambio
+    const cont = $('#estrategias')
+    const antes = new Map<string, { top: number; left: number; barras: string[] }>()
+    cont.querySelectorAll<HTMLElement>('.estr').forEach((el) => {
+      const r = el.getBoundingClientRect()
+      antes.set(el.dataset.id!, { top: r.top, left: r.left, barras: [...el.querySelectorAll<HTMLElement>('.ind-pista i')].map((i) => i.getAttribute('style') ?? '') })
+    })
+    cont.innerHTML = evals
       .map((ev, k) => {
         const f = ficha(ev.id, ev, st.iac, nasa)
         const top = k === 0 && ev.recomendada
-        return `<article class="estr ${top ? 'top' : ''} ${ev.recomendada ? '' : 'no-rec'}" style="--k:${COL[ev.id]};--i:${k}">
+        return `<article class="estr ${top ? 'top' : ''} ${ev.recomendada ? '' : 'no-rec'}" data-id="${ev.id}" style="--k:${COL[ev.id]};--i:${k}">
           ${top ? `<p class="estr-badge">${T.mejor}</p>` : ''}
           ${!ev.recomendada ? `<p class="estr-badge mal">${T.noRec}</p>` : ''}
           <header class="estr-cab">
@@ -173,6 +187,21 @@ export function renderFinca(root: HTMLElement, d: Dataset, id: string) {
         </article>`
       })
       .join('')
+    if (!antes.size) return
+    // FLIP: cada tarjeta parte de donde estaba y se desliza a su nuevo lugar; las barras crecen desde su ancho anterior
+    cont.classList.add('listo')
+    cont.querySelectorAll<HTMLElement>('.estr').forEach((el) => {
+      const a = antes.get(el.dataset.id!)
+      if (!a) return
+      const r = el.getBoundingClientRect()
+      const dx = a.left - r.left, dy = a.top - r.top
+      if (dx || dy) el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.2, .8, .2, 1)' })
+      const barras = [...el.querySelectorAll<HTMLElement>('.ind-pista i')]
+      const nuevas = barras.map((i) => i.getAttribute('style') ?? '')
+      barras.forEach((i, k) => a.barras[k] != null && i.setAttribute('style', a.barras[k]))
+      void el.offsetWidth
+      barras.forEach((i, k) => i.setAttribute('style', nuevas[k]))
+    })
   }
 
   root.querySelectorAll<HTMLElement>('.prio').forEach((el) =>

@@ -365,8 +365,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
 /* ---------- Modo presentación (?video=1) ---------- */
 .video { font-size: 18px; }
 .video .top-right, .video .supuestos, .video .leaflet-control-layers { display: none; }
-.video .map-screen { grid-template-columns: 1fr; height: calc(100vh - 64px); }
-.video .map-screen .panel { display: none; }
+.video .map-screen { height: calc(100vh - 64px); }
 .video .chart .axis { font-size: 12.5px; }
 .video .page { max-width: 1220px; }
 .demo-chip {
@@ -607,3 +606,26 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
 .prio span { flex: 1; min-width: 0; line-height: 1.2; }
 .seg { flex: none; }
 .seg button { padding: .25rem .5rem; }
+
+/* Comparador: después de la entrada, los cambios se animan (FLIP) en vez de repetir la entrada */
+.estrategias.listo .estr { animation: none; }
+.ind-rango, .ind-hip { transition: left .35s cubic-bezier(.2, .8, .2, 1), width .35s cubic-bezier(.2, .8, .2, 1); }
+.estr { transition: box-shadow .3s, opacity .3s; }
+
+/* Datos NASA de la finca: medido (real), escenario sobre lo medido o estimado */
+.nasa dd { display: flex; flex-direction: column; align-items: flex-end; gap: .15rem; }
+.nasa-tipo { font-family: var(--f-texto); font-size: .68rem; font-weight: 500; padding: .05rem .4rem; border-radius: 99px; }
+.nasa-tipo.real { background: #3b7a4c22; color: var(--bofedal); }
+.nasa-tipo.esc { background: #d9a23f2a; color: #8a5d12; }
+.nasa-tipo.est { background: var(--papel-2); color: var(--tinta-suave); }
+
+/* Mapa: agua detectada por satélite y datos reales de la zona */
+.agua-det { fill: #4fc1bf; fill-opacity: .35; stroke: #e8fbfa; stroke-width: 1.5; stroke-dasharray: 3 2; }
+.agua-det:hover { fill-opacity: .6; }
+.zona-nasa ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.zona-nasa li { display: flex; flex-direction: column; padding: .55rem .7rem; border-radius: 10px; background: var(--carta); border: 1px solid var(--linea); }
+.zona-nasa b { font-family: var(--f-mono); font-weight: 500; font-size: 1.05rem; color: var(--qocha); }
+.zona-nasa span { font-size: .84rem; line-height: 1.25; }
+.zona-nasa small { display: block; font-size: .7rem; color: var(--tinta-suave); margin-top: .15rem; }
+.nasa dt small { font-family: var(--f-texto); font-size: .74rem; line-height: 1.2; }
+.leaflet-tooltip { font-family: var(--f-texto); font-size: .9rem; }

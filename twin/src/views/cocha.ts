@@ -155,8 +155,13 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
   }
 
   /** Foto elegida + tira de miniaturas con la serie de la cámara. */
+  let visFirma = ''
   const renderVision = () => {
     const el = $('#vision')
+    // La foto solo se vuelve a dibujar si cambió la serie de la cámara o la foto elegida (si no, parpadea).
+    const vf = JSON.stringify([vis, fotoSel])
+    if (vf === visFirma) return
+    visFirma = vf
     if (!vis.length) {
       el.innerHTML = `<div class="empty">${CAMARA}<span>${t.noPhotos}</span></div>`
       return
@@ -251,9 +256,16 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     }
   }).observe($('#chart'))
 
+  const firma = (x: Dataset) =>
+    JSON.stringify([x.sites.find((s) => s.cocha_id === id), x.sensor.filter((s) => s.cocha_id === id), x.vision.filter((v) => v.cocha_id === id), x.recommendations])
+  let firmaActual = firma(d)
   return (nd: Dataset) => {
     const ns = nd.sites.find((s) => s.cocha_id === id)
     if (!ns) return
+    // Solo si cambió algo de ESTA cocha
+    const f = firma(nd)
+    if (f === firmaActual) return
+    firmaActual = f
     const prev = st.sensor
     d = nd
     st = cochaState(nd, ns)

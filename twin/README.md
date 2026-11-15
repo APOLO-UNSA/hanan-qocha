@@ -77,3 +77,19 @@ pequeña variación propia. Para la toma "en vivo", el mismo simulador puede esc
 python device/simulacion/simulador.py emitir --caso todas --cada 5     # o --secuencia mejora
 cd twin && VITE_DATA_SOURCE=live npm run dev                             # el gemelo refresca solo
 ```
+
+## Datos satelitales reales de la zona
+
+`node scripts/gen-nasa.mjs` resume los CSV del frente Campo y Satélite (`satellite/datos/`: Sentinel-2 + SRTM,
+ECOSTRESS, HLS, SMAP y NASA POWER) en `public/nasa/zona.json`. El mapa dibuja los cuerpos de agua detectados y un
+bloque con los datos de la zona; el comparador parte de esos valores medidos (y marca "medido", "escenario" o
+"estimado"). Volver a correrlo cuando se actualicen los CSV.
+
+## Presentación: tomas, capturas y montaje
+
+```bash
+node twin/scripts/grabar-tomas.mjs ../tomas-gemelo/es es   # tomas en bruto (MP4 1080p; la del celular, vertical)
+node twin/scripts/montaje.mjs ../tomas-gemelo/es es        # video con laptop y celular, textos y transiciones
+node twin/scripts/capturas.mjs twin/capturas es            # imágenes 4K montadas en dispositivos
+```
+Comparten `scripts/lib/navegador.mjs` (Chrome por DevTools) y `scripts/lib/maqueta.mjs` (diseño y textos ES/EN).

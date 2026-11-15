@@ -1,5 +1,6 @@
 import './style.css'
 import { DATA_SOURCE, loadDataset, type Dataset } from './data'
+import { cargarZona } from './zona'
 import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
 import { renderFinca } from './views/finca'
@@ -40,15 +41,19 @@ function route() {
 }
 
 async function poll() {
-  data = await loadDataset(data)
-  // En la ficha se actualiza en su sitio (no reinicia sliders); el mapa se vuelve a dibujar.
-  if (refreshCocha) refreshCocha(data)
-  else if (!/^#\/(cocha|finca)\//.test(location.hash)) route()
+  const nuevo = await loadDataset(data)
+  // Sin cambios, no se toca la pantalla.
+  if (JSON.stringify(nuevo) === JSON.stringify(data)) return
+  data = nuevo
+  // Solo la ficha se actualiza en su sitio (sin reiniciar sliders ni la foto elegida). El mapa y el comparador
+  // no se vuelven a dibujar: usan los datos nuevos al volver a abrirlos (antes el mapa se redibujaba entero
+  // cada 10 s, con los pines cayendo de nuevo y la página volviendo arriba).
+  refreshCocha?.(data)
 }
 
 async function start() {
   view.innerHTML = `<p class="page muted">${t.loading}</p>`
-  data = await loadDataset()
+  ;[data] = await Promise.all([loadDataset(), cargarZona()])
   route()
   window.addEventListener('hashchange', route)
 

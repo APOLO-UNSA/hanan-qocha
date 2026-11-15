@@ -38,8 +38,17 @@ del código (`src/model.ts`) y de la demo; si cambian, actualízalos aquí.
 ## Recalibración ("cierra el ciclo")
 
 - Con **2 o más fotos**, el gemelo busca el factor **α** (0,05–3) que hace que el modelo reproduzca lo medido por la cámara. Desde ahí proyecta con esa tasa ajustada.
-- **Demo:** QC-01 → tasa ×1,58, error medio **2,6 → 1,4 kg (47 % menos)** con 8 fotos. QC-02 → ×1,42, error **1,9 → 0,6 kg (70 % menos)** con 6 fotos.
+- **Demo:** QC-01 → tasa ×1,58, error medio **2,6 → 1,4 kg (47 % menos)** con 8 fotos. QC-02 → ×1,58, error **2,3 → 0,6 kg (75 % menos)** con 6 fotos.
 - **Frase:** *"El modelo no pretende saberlo todo de entrada: arranca con la literatura y cada temporada la cámara lo corrige."*
+
+## Comparador de estrategias de la finca (Pantalla 4, `#/finca/<cocha>`)
+
+- Tres estrategias para la temporada: **rotación actual**, **con leguminosa** (tarwi) y **con cushuro** (manejo de la cocha en lluvias).
+- Indicadores de 0 a 100 en **agua**, **suelo y nitrógeno** e **ingreso**, con banda de incertidumbre que crece con la sequía.
+- Las **prioridades** del productor reordenan; **no cambian la evidencia**. Los sliders de lluvia y temperatura mueven los datos NASA (SMAP, GPM, ECOSTRESS/MODIS, NDVI, heladas) y los indicadores.
+- La evidencia del cushuro es el **IAC** y la **cosecha proyectada por el gemelo** de esa cocha. Con una cocha no apta (p. ej. QC-10) sale **"No recomendada para esta finca"**.
+- El aporte del cushuro al suelo vecino es una **hipótesis**: se dibuja aparte (rayado) y **no suma** al puntaje.
+- Rotaciones, especies y pesos son un **esquema** por validar con productores y con Ortega. La pantalla lo dice: apoya la decisión, no la reemplaza.
 
 ## Preguntas probables
 

@@ -2,8 +2,10 @@
 // Las fotos (*.jpg) las dibuja después scripts/gen-fotos.py a partir de vision.json.
 // Cumple los contratos de data/contracts/. Uso: node scripts/gen-demo.mjs
 // Es determinista (semilla fija): volver a correrlo da los mismos archivos.
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { mkdirSync, writeFileSync, rmSync, mkdtempSync, readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 const OUT = resolve(import.meta.dirname, '../public/demo')
 rmSync(OUT, { recursive: true, force: true })
@@ -41,55 +43,23 @@ const COCHAS = [
   { n: 'Cocha 12 (norte)', lat: -15.744, lon: -71.251, alt: 4460, sat: 0.69, perfil: 'media', fotos: 0 },
 ]
 
-// Lecturas del sensor: modelo del simulador de Qocha Ñawi de Paolo (device/simulacion/simulador.py).
-// Tres casos de agua; cada cocha toma uno según su perfil, con una pequeña variación propia.
-const CASOS_SENSOR = {
-  propicia: { tds: 40, tds_ruido: 0.06, t_media: 10.0, t_amp: 2.5, ph: 7.1, ph_amp: 0.15, uv_pico: 10.0 },
-  media: { tds: 180, tds_ruido: 0.05, t_media: 19.0, t_amp: 3.0, ph: 7.8, ph_amp: 0.2, uv_pico: 13.0 },
-  debil: { tds: 260, tds_ruido: 0.04, t_media: 22.0, t_amp: 3.0, ph: 8.7, ph_amp: 0.2, uv_pico: 15.5 },
-}
+// Lecturas del sensor: las genera el simulador físico de Qocha Ñawi de Paolo (device/simulacion/simulador.py,
+// modo "lote"). Cada cocha toma uno de sus tres casos de agua según su perfil.
 const CASO_DE_PERFIL = { buena: 'propicia', media: 'media', calida: 'media', salina: 'debil' }
-
-// Generador propio para el sensor (la secuencia principal no cambia: la visión y sus fotos siguen iguales)
-function prng(semilla) {
-  let a = semilla
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-/** Una lectura como la del simulador de Paolo: ciclo diario de temperatura (más fría a las 4 h), UV de día y pH. */
-function lecturaSensor(p, hora, r) {
-  const u = (a, b) => a + r() * (b - a)
-  const temp = p.t_media + p.t_amp * Math.sin((2 * Math.PI * (hora - 10)) / 24)
-  const uv = p.uv_pico * Math.max(0, Math.sin((Math.PI * (hora - 6)) / 12))
-  const tds = p.tds * (1 + u(-p.tds_ruido, p.tds_ruido))
-  const ph = p.ph + p.ph_amp * Math.sin((2 * Math.PI * (hora - 12)) / 24) + u(-0.03, 0.03)
-  return { tds_ppm: round(tds, 0), temp_agua_c: round(temp + u(-0.2, 0.2)), ph: round(ph), uv_index: round(uv) }
-}
 
 // Tasa efectiva diaria según la fase (coherente con el modelo del gemelo)
 const FASES = { lista: 0.095, creciendo: 0.085, lenta: 0.03, sembrada: 0.05 }
 
 const sites = [], sensor = [], vision = []
+const grupos = { propicia: [], media: [], debil: [] }
 
 COCHAS.forEach((c, i) => {
   const id = `QC-${String(i + 1).padStart(2, '0')}`
   sites.push({ cocha_id: id, nombre: c.n, lat: c.lat, lon: c.lon, altitud_m: c.alt, indice_satelital: c.sat })
 
-  // Sensor: una lectura cada 6 h durante los últimos 2 días, con el modelo del simulador de Paolo.
+  // Sensor: lo genera el simulador de Paolo después del bucle (ver más abajo).
   for (let k = 0; k < 4 + 9 * 3; k++) rnd() // misma cantidad de números que antes: no altera la serie de visión
-  const rs = prng(1000 + i * 7919)
-  const caso = CASOS_SENSOR[CASO_DE_PERFIL[c.perfil]]
-  const p = { ...caso, tds: caso.tds * (0.85 + 0.3 * rs()), t_media: caso.t_media + (rs() - 0.5) * 2, uv_pico: caso.uv_pico * (0.9 + 0.2 * rs()) }
-  for (let k = 8; k >= 0; k--) {
-    const t = NOW - k * 6 * 3600e3
-    const hora = new Date(t - 5 * 3600e3).getUTCHours()
-    sensor.push({ cocha_id: id, timestamp: iso(t), ...lecturaSensor(p, hora, rs) })
-  }
+  grupos[CASO_DE_PERFIL[c.perfil]].push(id)
 
   // Visión: serie semanal con crecimiento logístico + ruido.
   if (c.fotos > 0) {
@@ -107,6 +77,22 @@ COCHAS.forEach((c, i) => {
     }
   }
 })
+
+// Lecturas cada 2 h durante 48 h con el simulador físico, en tandas de una cocha por caso
+{
+  const SIM = resolve(import.meta.dirname, '../../device/simulacion/simulador.py')
+  const tmp = mkdtempSync(join(tmpdir(), 'qt-sim-'))
+  const n = Math.max(grupos.propicia.length, grupos.media.length, grupos.debil.length)
+  for (let k = 0; k < n; k++) {
+    const ids = [grupos.propicia[k] ?? `X-A${k}`, grupos.media[k] ?? `X-B${k}`, grupos.debil[k] ?? `X-C${k}`]
+    const salida = join(tmp, `lote-${k}.json`)
+    execFileSync('python', [SIM, 'lote', '--ids', ids.join(','), '--horas', '48', '--cada', '120',
+      '--fin', '2026-11-14T10:00', '--semilla', String(k + 1), '--salida', salida], { stdio: 'ignore' })
+    for (const r of JSON.parse(readFileSync(salida, 'utf8'))) if (!r.cocha_id.startsWith('X-')) sensor.push(r)
+  }
+  rmSync(tmp, { recursive: true, force: true })
+  sensor.sort((a, b) => a.cocha_id.localeCompare(b.cocha_id) || a.timestamp.localeCompare(b.timestamp))
+}
 
 const recommendations = [
   { codigo: 'TDS_ALTO', condicion: 'tds_ppm > 150', mensaje_es: 'El agua tiene muchos sólidos disueltos; evita cosechar aquí por ahora.', mensaje_en: 'Water has high dissolved solids; avoid harvesting here for now.' },

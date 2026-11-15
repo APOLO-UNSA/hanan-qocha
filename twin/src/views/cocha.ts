@@ -171,7 +171,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
     el.innerHTML = `
       <figure class="foto">
         <img src="${esc(photoUrl(v.foto))}" alt="${t.photoAlt}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'foto-ph',textContent:${esc(JSON.stringify(t.photoMissing))}}))">
-        <figcaption><b>${v.biomasa_kg} kg <em>${t.coverage.toLowerCase()} ${v.cobertura_pct} %</em></b><span>${fmtTime(v.timestamp)}</span></figcaption>
+        <figcaption><b>${v.biomasa_estimada ? '≈ ' : ''}${v.biomasa_kg} kg${v.biomasa_estimada ? ` <small>(${t.estimatedFromCover})</small>` : ''} <em>${t.coverage.toLowerCase()} ${v.cobertura_pct} %</em></b><span>${fmtTime(v.timestamp)}</span></figcaption>
       </figure>
       ${
         vis.length > 1

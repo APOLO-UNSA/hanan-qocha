@@ -77,3 +77,12 @@ describe('mergeSensor (en vivo)', () => {
     expect(m).toHaveLength(1)
   })
 })
+
+describe('visión sin pesaje', () => {
+  it('biomasa 0 con cobertura: se estima y se marca', async () => {
+    serve({ vision: JSON.stringify([{ cocha_id: 'A', timestamp: '2026-11-14T10:00:00-05:00', foto: 'x.jpg', cobertura_pct: 12.5, biomasa_kg: 0 }]) })
+    const [v] = (await loadDataset()).vision
+    expect(v.biomasa_kg).toBe(5)
+    expect(v.biomasa_estimada).toBe(true)
+  })
+})

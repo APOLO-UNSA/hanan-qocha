@@ -24,7 +24,12 @@ export interface VisionResult {
   foto: string
   cobertura_pct: number
   biomasa_kg: number
+  /** true si la biomasa no vino medida (0) y el gemelo la estimó desde la cobertura (no forma parte del contrato). */
+  biomasa_estimada?: boolean
 }
+
+/** Capacidad supuesta para estimar biomasa desde la cobertura (igual a PARAMS.capacidad_default_kg del modelo). */
+const CAPACIDAD_SUPUESTA_KG = 40
 
 export interface Recommendation {
   codigo: string
@@ -132,6 +137,12 @@ export async function loadDataset(prev?: Dataset): Promise<Dataset> {
   // En vivo, el puente del Qocha Ñawi solo deja la última lectura por cocha: se acumulan en memoria
   // para que el historial de 48 h se vaya llenando mientras la ficha está abierta.
   if (DATA_SOURCE === 'live' && prev && raw[1] !== null) d.sensor = mergeSensor(prev.sensor, d.sensor)
+  // El módulo de visión publica biomasa_kg = 0 mientras no haya pesaje: se estima desde la cobertura
+  d.vision = d.vision.map((v) =>
+    v.biomasa_kg === 0 && v.cobertura_pct > 0
+      ? { ...v, biomasa_kg: Math.round(v.cobertura_pct * CAPACIDAD_SUPUESTA_KG) / 100, biomasa_estimada: true }
+      : v,
+  )
   // Un cocha_id repetido en sites.json: se queda el primero.
   const seen = new Set<string>()
   d.sites = d.sites.filter((s) => !seen.has(s.cocha_id) && seen.add(s.cocha_id))

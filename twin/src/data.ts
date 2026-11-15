@@ -43,10 +43,15 @@ export interface Dataset {
 export type DataSource = 'processed' | 'live' | 'mock' | 'demo'
 const SOURCES: DataSource[] = ['processed', 'live', 'mock', 'demo']
 
-/** Fuente de datos: ?datos=demo en la URL manda; si no, VITE_DATA_SOURCE; si no, processed. */
+/**
+ * Fuente de datos: ?datos=<fuente> en la URL manda; si no, VITE_DATA_SOURCE; si no, en el sitio publicado
+ * el conjunto de 12 cochas (demo) y en desarrollo processed. Los datos del equipo: ?datos=processed.
+ */
 export const DEFAULT_SOURCE: DataSource = SOURCES.includes(import.meta.env.VITE_DATA_SOURCE)
   ? import.meta.env.VITE_DATA_SOURCE
-  : 'processed'
+  : import.meta.env.PROD
+    ? 'demo'
+    : 'processed'
 const fromUrl = (typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('datos')) as DataSource | null
 export const DATA_SOURCE: DataSource = fromUrl && SOURCES.includes(fromUrl) ? fromUrl : DEFAULT_SOURCE
 

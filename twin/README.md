@@ -46,7 +46,9 @@ Los rangos y parámetros en `RANGES` / `PARAMS` son **supuestos del modelo**.
 
 ## Modo demo
 
-`?datos=demo` en la URL (o el enlace "ver demo" de la barra) carga un conjunto **ficticio** de 12 cochas,
+El sitio publicado abre **por defecto** con este conjunto (`?datos=demo` también funciona); los datos que
+entrega el equipo en `data/processed/` se ven con **`?datos=processed`**. En desarrollo el defecto sigue siendo
+`processed`. Es un conjunto **ficticio** de 12 cochas,
 lecturas y series de fotos sintéticas con colonias marcadas, empaquetado en `public/demo/`. Sirve para grabar
 el video y el pitch aunque falten datos reales; las fechas se desplazan para que la última lectura sea "ahora".
 Se regenera con `node scripts/gen-demo.mjs` (determinista) y cumple los contratos de `data/contracts/`.

@@ -1,0 +1,6 @@
+# Módulo de visión de Hanan Qocha (Python >= 3.9)
+opencv-python>=4.8
+numpy>=1.24
+
+# Solo para ejecutar las pruebas
+pytest>=7.4

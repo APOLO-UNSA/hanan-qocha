@@ -6,9 +6,10 @@ Pruebas del módulo de visión de Hanan Qocha.
 Notas
 -----
 * Las pruebas "de campo" usan las fotografías reales `cushuro2.jpg` y
-  `cushuro3.jpg`. No están en el repositorio (no se publican fotos): se buscan
-  en `fotos/` o en la carpeta que indique la variable de entorno
-  `HANAN_QOCHA_FOTOS`. Si no están, esas pruebas se omiten (skip), no fallan.
+  `cushuro3.jpg`. Los originales no están en el repositorio (solo sus imágenes
+  de resultado, en `vision/resultados/`): se buscan en `fotos/` o en la carpeta
+  que indique la variable de entorno `HANAN_QOCHA_FOTOS`. Si no están, esas
+  pruebas se omiten (skip), no fallan.
 * Algunas pruebas usan arreglos sintéticos (una imagen lisa, discos dibujados,
   pares numéricos inventados). Sirven únicamente para comprobar la mecánica
   del código; no son fotografías reales ni mediciones de campo y no validan

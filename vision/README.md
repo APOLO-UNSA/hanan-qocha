@@ -22,9 +22,10 @@ py -m pytest vision -v
 
 (En Linux/macOS use `python3` en lugar de `py`.)
 
-Las fotografías no están en el repositorio. Las pruebas que las usan las buscan
-en `fotos/` o en la carpeta indicada por la variable de entorno
-`HANAN_QOCHA_FOTOS`; si no las encuentran se omiten. En el CI corren las
+Las fotografías originales no están en el repositorio (sí sus imágenes de
+resultado, en `vision/resultados/`). Las pruebas que usan los originales los
+buscan en `fotos/` o en la carpeta indicada por la variable de entorno
+`HANAN_QOCHA_FOTOS`; si no los encuentran se omiten. En el CI corren las
 pruebas de mecánica, incluida una con discos sintéticos.
 
 Opciones principales de `segment.py`:
@@ -100,6 +101,14 @@ sobre gradiente, K-means de color+textura y simetría radial.
 |---|---|---|---|---|
 | `cushuro2.jpg` | 12,50 % | 3,13 % | 9,38 % | 195 (50 + 145) |
 | `cushuro3.jpg` | 4,19 % | 0,76 % | 3,43 % | 38 (12 + 26) |
+
+Las imágenes de estas dos ejecuciones están en `vision/resultados/<foto>/`
+(`mascara.png`, `overlay.jpg`, `contornos.jpg`, `comparativa.jpg`). Son ejemplos
+de salida del algoritmo: el gemelo no las lee.
+
+![Resultado en cushuro2: original, máscara, overlay y contornos](resultados/cushuro2/comparativa.jpg)
+
+![Resultado en cushuro3: original, máscara, overlay y contornos](resultados/cushuro3/comparativa.jpg)
 
 Lo que sigue es una **revisión visual** de los overlays, no una evaluación
 cuantitativa.
@@ -197,7 +206,8 @@ del rango medido.
 - `COCHA-01` y `COCHA-02` son identificadores provisionales: no se sabe a qué
   cocha pertenece cada foto.
 - Solo se usaron dos fotografías de campo (`cushuro2.jpg`, `cushuro3.jpg`)
-  para desarrollar y evaluar. No se publican en el repositorio.
+  para desarrollar y evaluar. Los originales no se publican; sus imágenes de
+  resultado sí, en `vision/resultados/`.
 - El validador interno rechaza campos fuera del contrato, igual que el esquema
   (`additionalProperties: false`). Una prueba comprueba que ambos coinciden.
 

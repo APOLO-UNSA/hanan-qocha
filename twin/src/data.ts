@@ -124,6 +124,9 @@ export async function loadDataset(prev?: Dataset): Promise<Dataset> {
     vision: pick('vision', 2),
     recommendations: pick('recommendations', 3),
   }
+  // En vivo, el puente del Qocha Ñawi solo deja la última lectura por cocha: se acumulan en memoria
+  // para que el historial de 48 h se vaya llenando mientras la ficha está abierta.
+  if (DATA_SOURCE === 'live' && prev && raw[1] !== null) d.sensor = mergeSensor(prev.sensor, d.sensor)
   // Un cocha_id repetido en sites.json: se queda el primero.
   const seen = new Set<string>()
   d.sites = d.sites.filter((s) => !seen.has(s.cocha_id) && seen.add(s.cocha_id))
@@ -147,6 +150,15 @@ const byTime = (a: { timestamp: string }, b: { timestamp: string }) =>
 /** Última lectura del sensor para una cocha. */
 export function latestSensor(d: Dataset, id: string): SensorReading | undefined {
   return d.sensor.filter((s) => s.cocha_id === id).sort(byTime).at(-1)
+}
+
+/** Une dos tandas de lecturas sin repetir (cocha + hora) y descarta las de más de `horas` antes de la última. */
+export function mergeSensor(viejas: SensorReading[], nuevas: SensorReading[], horas = 48): SensorReading[] {
+  const m = new Map<string, SensorReading>()
+  for (const r of [...viejas, ...nuevas]) m.set(`${r.cocha_id}|${Date.parse(r.timestamp)}`, r)
+  const todas = [...m.values()].sort(byTime)
+  const fin = Date.parse(todas.at(-1)?.timestamp ?? '')
+  return Number.isFinite(fin) ? todas.filter((r) => fin - Date.parse(r.timestamp) <= horas * 3600e3) : todas
 }
 
 /** Lecturas del sensor de una cocha en las últimas `horas` (contadas desde la más reciente), ordenadas. */

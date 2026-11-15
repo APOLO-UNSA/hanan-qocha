@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { loadDataset, sensorHistory } from './data'
+import { loadDataset, mergeSensor, sensorHistory } from './data'
 
 /** Simula el servidor: cada archivo devuelve un texto o un código de error. */
 function serve(files: Record<string, string | number>) {
@@ -60,5 +60,20 @@ describe('sensorHistory', () => {
     ]
     const h = sensorHistory({ sites: [], sensor, vision: [], recommendations: [] }, 'A', 48)
     expect(h.map((r) => r.timestamp)).toEqual([t(24), t(0)])
+  })
+})
+
+describe('mergeSensor (en vivo)', () => {
+  const t = (h: number) => new Date(Date.UTC(2026, 10, 14, 12) + h * 3600e3).toISOString()
+  it('acumula lecturas nuevas sin repetir la misma hora', () => {
+    const a = [{ ...READ, timestamp: t(0) }]
+    const b = [{ ...READ, timestamp: t(0) }, { ...READ, timestamp: t(1), tds_ppm: 50 }]
+    const m = mergeSensor(a, b)
+    expect(m).toHaveLength(2)
+    expect(m.at(-1)!.tds_ppm).toBe(50)
+  })
+  it('olvida lo que tiene más de 48 h', () => {
+    const m = mergeSensor([{ ...READ, timestamp: t(0) }], [{ ...READ, timestamp: t(60) }])
+    expect(m).toHaveLength(1)
   })
 })

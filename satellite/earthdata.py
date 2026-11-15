@@ -177,7 +177,7 @@ def hls(a):
             if fm & 0b1110:  # bits 1-3: nube, adyacente a nube, sombra
                 continue
             gr, nr = v["verde"][k] / 1e4, v["nir"][k] / 1e4  # reflectancia (factor 0,0001)
-            if gr <= 0 or gr + nr == 0 or gr > 1 or nr > 1:
+            if not (0 < gr <= 1 and 0 < nr <= 1):  # descarta -9999 (sin dato) y valores imposibles
                 continue
             filas.append([g["time_start"][:10], g["title"][:7], cid, round((gr - nr) / (gr + nr), 3)])
     escribir("hls_ndwi.csv", filas, ["fecha", "sensor", "cocha", "ndwi"])

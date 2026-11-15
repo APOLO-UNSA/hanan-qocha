@@ -603,3 +603,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
   .finca-lado { position: static; }
   .hero-finca { grid-template-columns: 1fr; }
 }
+.estr-cab h3 { font-size: 1.15rem; line-height: 1.15; }
+.prio span { flex: 1; min-width: 0; line-height: 1.2; }
+.seg { flex: none; }
+.seg button { padding: .25rem .5rem; }

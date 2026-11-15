@@ -10,7 +10,9 @@ cortes con la duración exacta de cada bloque (`cortes-30s-en/`) y una versión 
 
 ## 1. Qué hay y dónde
 
-Los videos **no están en el repo** (pesan ~150 MB). Pax los comparte aparte, en la carpeta `tomas-gemelo/`:
+Los videos **no están en el repo** (pesan ~150 MB): se descargan del Release
+**[Gemelo: material para el video de 30 s](https://github.com/APOLO-UNSA/hanan-qocha/releases/tag/gemelo-video-v1)**
+(en el Release, los nombres llevan `-en` o `-es`). En la carpeta `tomas-gemelo/` de Pax están así:
 
 ```
 tomas-gemelo/

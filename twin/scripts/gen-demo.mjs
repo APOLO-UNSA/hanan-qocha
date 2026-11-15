@@ -41,12 +41,36 @@ const COCHAS = [
   { n: 'Cocha 12 (norte)', lat: -15.744, lon: -71.251, alt: 4460, sat: 0.69, perfil: 'media', fotos: 0 },
 ]
 
-const PERFILES = {
-  buena: { tds: [30, 80], temp: [8, 13], uv: [7, 11], ph: [6.8, 7.6] },
-  media: { tds: [90, 140], temp: [10, 15], uv: [9, 13], ph: [7.0, 8.0] },
-  calida: { tds: [60, 110], temp: [16, 20], uv: [12, 15], ph: [7.2, 8.2] },
-  salina: { tds: [190, 280], temp: [11, 16], uv: [10, 14], ph: [7.8, 8.8] },
+// Lecturas del sensor: modelo del simulador de Qocha Ñawi de Paolo (device/simulacion/simulador.py).
+// Tres casos de agua; cada cocha toma uno según su perfil, con una pequeña variación propia.
+const CASOS_SENSOR = {
+  propicia: { tds: 40, tds_ruido: 0.06, t_media: 10.0, t_amp: 2.5, ph: 7.1, ph_amp: 0.15, uv_pico: 10.0 },
+  media: { tds: 180, tds_ruido: 0.05, t_media: 19.0, t_amp: 3.0, ph: 7.8, ph_amp: 0.2, uv_pico: 13.0 },
+  debil: { tds: 260, tds_ruido: 0.04, t_media: 22.0, t_amp: 3.0, ph: 8.7, ph_amp: 0.2, uv_pico: 15.5 },
 }
+const CASO_DE_PERFIL = { buena: 'propicia', media: 'media', calida: 'media', salina: 'debil' }
+
+// Generador propio para el sensor (la secuencia principal no cambia: la visión y sus fotos siguen iguales)
+function prng(semilla) {
+  let a = semilla
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** Una lectura como la del simulador de Paolo: ciclo diario de temperatura (más fría a las 4 h), UV de día y pH. */
+function lecturaSensor(p, hora, r) {
+  const u = (a, b) => a + r() * (b - a)
+  const temp = p.t_media + p.t_amp * Math.sin((2 * Math.PI * (hora - 10)) / 24)
+  const uv = p.uv_pico * Math.max(0, Math.sin((Math.PI * (hora - 6)) / 12))
+  const tds = p.tds * (1 + u(-p.tds_ruido, p.tds_ruido))
+  const ph = p.ph + p.ph_amp * Math.sin((2 * Math.PI * (hora - 12)) / 24) + u(-0.03, 0.03)
+  return { tds_ppm: round(tds, 0), temp_agua_c: round(temp + u(-0.2, 0.2)), ph: round(ph), uv_index: round(uv) }
+}
+
 // Tasa efectiva diaria según la fase (coherente con el modelo del gemelo)
 const FASES = { lista: 0.095, creciendo: 0.085, lenta: 0.03, sembrada: 0.05 }
 
@@ -56,21 +80,15 @@ COCHAS.forEach((c, i) => {
   const id = `QC-${String(i + 1).padStart(2, '0')}`
   sites.push({ cocha_id: id, nombre: c.n, lat: c.lat, lon: c.lon, altitud_m: c.alt, indice_satelital: c.sat })
 
-  // Sensor: una lectura cada 6 h durante los últimos 2 días, con ciclo diario de temperatura.
-  const p = PERFILES[c.perfil]
-  const base = { tds: between(...p.tds), temp: between(...p.temp), uv: between(...p.uv), ph: between(...p.ph) }
+  // Sensor: una lectura cada 6 h durante los últimos 2 días, con el modelo del simulador de Paolo.
+  for (let k = 0; k < 4 + 9 * 3; k++) rnd() // misma cantidad de números que antes: no altera la serie de visión
+  const rs = prng(1000 + i * 7919)
+  const caso = CASOS_SENSOR[CASO_DE_PERFIL[c.perfil]]
+  const p = { ...caso, tds: caso.tds * (0.85 + 0.3 * rs()), t_media: caso.t_media + (rs() - 0.5) * 2, uv_pico: caso.uv_pico * (0.9 + 0.2 * rs()) }
   for (let k = 8; k >= 0; k--) {
     const t = NOW - k * 6 * 3600e3
-    const hour = new Date(t - 5 * 3600e3).getUTCHours()
-    const dia = Math.sin(((hour - 8) / 24) * 2 * Math.PI) // pico a mediodía
-    sensor.push({
-      cocha_id: id,
-      timestamp: iso(t),
-      tds_ppm: round(base.tds + between(-6, 6), 0),
-      temp_agua_c: round(base.temp + 2.5 * dia + between(-0.4, 0.4)),
-      ph: round(base.ph + between(-0.1, 0.1)),
-      uv_index: round(Math.max(0, base.uv * Math.max(0, dia + 0.2)), 1),
-    })
+    const hora = new Date(t - 5 * 3600e3).getUTCHours()
+    sensor.push({ cocha_id: id, timestamp: iso(t), ...lecturaSensor(p, hora, rs) })
   }
 
   // Visión: serie semanal con crecimiento logístico + ruido.

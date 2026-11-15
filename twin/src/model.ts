@@ -253,7 +253,7 @@ export function recommend(
   // 2. Reglas del modelo.
   if (c.tds_ppm > RANGES.tds_ppm.optHi && !actions.some((a) => a.codigo.startsWith('TDS')))
     actions.push({ codigo: 'RENOVAR_AGUA', titulo: t.renewWater, detalle: t.renewWaterDet(c.tds_ppm), nivel: f.tds_ppm < 0.3 ? 'alerta' : 'aviso' })
-  if (c.temp_agua_c > RANGES.temp_agua_c.optHi || c.uv_index > RANGES.uv_index.optHi)
+  if ((c.temp_agua_c > RANGES.temp_agua_c.optHi || c.uv_index > RANGES.uv_index.optHi) && !actions.some((a) => /CALID|TEMP|SOMBRA/.test(a.codigo)))
     actions.push({ codigo: 'SOMBRA', titulo: t.shade, detalle: t.shadeDet, nivel: 'aviso' })
   if (c.profundidad_m < RANGES.profundidad_m.optLo)
     actions.push({ codigo: 'PROFUNDIDAD', titulo: t.depth, detalle: t.depthDet(c.profundidad_m.toFixed(2)), nivel: 'aviso' })

@@ -64,3 +64,14 @@ datos y las teselas del mapa ya vistas (hasta 400). Sin señal, la app abre igua
 el aviso "Sin conexión". `public/manifest.webmanifest` permite **instalarla** en el celular ("Agregar a pantalla de
 inicio"). En desarrollo (`npm run dev`) el service worker no se registra, para no interferir con el modo en vivo.
 Si se cambia la estrategia de caché, subir `VERSION` en `sw.js`.
+
+## Sensor simulado (Qocha Ñawi)
+
+Las lecturas de la demo salen del modelo del simulador de Paolo (`device/simulacion/simulador.py`): tres casos de agua
+(propicia, media, débil) con ciclo diario de temperatura, UV de día y pH; cada cocha toma uno según su perfil, con una
+pequeña variación propia. Para la toma "en vivo", el mismo simulador puede escribir `data/live/`:
+
+```bash
+python device/simulacion/simulador.py emitir --caso todas --cada 5     # o --secuencia mejora
+cd twin && VITE_DATA_SOURCE=live npm run dev                             # el gemelo refresca solo
+```

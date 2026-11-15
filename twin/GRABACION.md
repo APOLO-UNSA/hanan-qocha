@@ -11,16 +11,17 @@ cortes con la duración exacta de cada bloque (`cortes-30s-en/`) y una versión 
 ## 1. Qué hay y dónde
 
 Los videos **no están en el repo** (pesan ~150 MB): se descargan del Release
-**[Gemelo: material para el video de 30 s](https://github.com/APOLO-UNSA/hanan-qocha/releases/tag/gemelo-video-v1)**
+**[Gemelo: material para el video de 30 s](https://github.com/APOLO-UNSA/hanan-qocha/releases/tag/gemelo-video-v2)**
 (en el Release, los nombres llevan `-en` o `-es`). En la carpeta `tomas-gemelo/` de Pax están así:
 
 ```
 tomas-gemelo/
   en/                                   ← para el video (en inglés)
-    cortes-30s-en/gemelo-21-26s.mp4     ★ bloque del gemelo, 5,00 s exactos (curva 2 s + colonias 1,5 s + cosecha 1,5 s)
+    cortes-30s-en/gemelo-21-26s.mp4     ★ bloque del gemelo, 5,00 s exactos: curva → colonias → cosecha, con fundidos
     cortes-30s-en/mapa-3s.mp4           3,00 s del mapa, para el bloque de 14–21 s
     cortes-30s-en/comparador-5s.mp4     5,00 s del comparador, si el guion pasa a "Adapting Farms"
-    presentacion-gemelo-en-30s.mp4      el gemelo solo, editado, 30,0 s exactos (pitch, redes)
+    presentacion-gemelo-en-30s.mp4      el gemelo solo, editado, 30,0 s exactos, primeros planos con rótulos
+    .planos-en/*.mp4                    los primeros planos completos (sin cortar), por si se quiere otro corte
     presentacion-gemelo-en.mp4          versión larga (1:45) para el pitch o la demo en vivo
     escenas-en/00-portada.mp4 … 08-cierre.mp4   cada escena del montaje, suelta
     pax-1-curva.mp4, pax-2-cosecha.mp4, pax-3-colonias.mp4, extra-*.mp4   tomas en bruto (pantalla completa)
@@ -38,17 +39,26 @@ Las imágenes 4K en español para las diapositivas sí están en el repo: [`twin
 ## 2. Cortes para el video de 30 s
 
 **Ya cortados** en `cortes-30s-en/`, a pantalla completa y sin textos (la voz los cubre). Se ponen tal cual en la línea
-de tiempo:
+de tiempo. Son **primeros planos grabados a propósito para esa duración**: el encuadre está cerrado sobre la función
+(la curva y su slider, la foto, el botón de cosecha), la acción empieza en el primer cuadro y los cambios de plano son
+fundidos de 0,4 s, sin cortes secos.
 
 | Segundo del video | Voz | Archivo | Duración |
 |---|---|---|---|
 | 14–17 s (bloque de Paolo y Adrián) | *"…NASA satellite data…"* | `mapa-3s.mp4` (caen los pines sobre la imagen satelital) | 3,00 s |
 | **21–26 s** | *"…a digital twin of each pond that forecasts growth and tells growers when and how much to harvest."* | **`gemelo-21-26s.mp4`** | **5,00 s** |
 
-Dentro de `gemelo-21-26s.mp4`: 0–2 s la curva responde al slider de TDS (*forecasts growth*), 2–3,5 s las fotos con
-colonias marcadas (*when*), 3,5–5 s el cursor llega a "Harvest 30.9 kg" (*how much to harvest*).
+Dentro de `gemelo-21-26s.mp4`, alineado con las tres frases de la voz:
 
-Si Jefry prefiere armarlo él, los mismos momentos dentro de las escenas con marco (tiempos aproximados, ±0,5 s):
+| Tramo | Qué se ve | Voz |
+|---|---|---|
+| 0–2,4 s | El cursor sube el slider de sólidos disueltos: la curva de crecimiento se aplana y la acción pasa a roja | *forecasts growth* |
+| 2,0–3,8 s (fundido) | La foto de la cámara avanza y las colonias marcadas crecen | *tells growers when* |
+| 3,4–5,0 s (fundido) | La cámara se acerca a "Harvest 30.9 kg" y el cursor la marca | *and how much to harvest* |
+
+Si Jefry prefiere armarlo él, hay dos opciones. Los primeros planos completos están en `.planos-en/` (`curva`, `colonias`,
+`cosecha`, `mapa`, `ficha`, `comparador`, `movil`), y la acción empieza en el segundo 0 de cada uno. También están los
+mismos momentos dentro de las escenas con marco (tiempos aproximados, ±0,5 s):
 
 | Segundo del video | Voz | Archivo | Tramo |
 |---|---|---|---|
@@ -74,8 +84,18 @@ El plan nuevo (§1.1 y §4.4) pone el **comparador de estrategias de la finca** 
 
 ## 3. Versión de 30 s del gemelo (`presentacion-gemelo-en-30s.mp4`)
 
-Portada 2,5 s → mapa 4,5 → ficha 3 → colonias 2,5 → curva 4 → cosecha 3 → comparador 5,5 → celular 3 → cierre, con
-transiciones de 0,4 s: **30,0 s exactos**. Sus escenas sueltas están en `escenas-en-30s/`.
+Primeros planos a pantalla completa, cada uno con un rótulo (pregunta y titular) en una tarjeta oscura. El orden es:
+1. portada, 2,6 s;
+2. mapa, 4 s;
+3. ficha con el IAC, 3,4 s;
+4. colonias, 3 s;
+5. curva, 4,2 s;
+6. cosecha, 3,4 s (la cámara se acerca a "Harvest 30.9 kg");
+7. comparador, 5,6 s;
+8. celular, 3,6 s;
+9. cierre.
+
+Las transiciones son de 0,4 s y el total es de **30,0 s exactos**.
 
 ## 4. Escenas del montaje largo (`presentacion-gemelo-en.mp4`)
 
@@ -107,7 +127,8 @@ Necesita Node ≥ 22, Chrome y ffmpeg. Usa la app publicada:
 ```bash
 node twin/scripts/grabar-tomas.mjs ../tomas-gemelo/en en     # tomas en bruto (~4 min)
 node twin/scripts/montaje.mjs ../tomas-gemelo/en en          # escenas + video largo (~6 min)
-node twin/scripts/montaje.mjs ../tomas-gemelo/en en 30s      # versión de 30 s + cortes exactos del video del equipo
+node twin/scripts/cortos.mjs ../tomas-gemelo/en en          # primeros planos, cortes exactos y versión de 30 s (~5 min)
+REUSAR=1 node twin/scripts/cortos.mjs ../tomas-gemelo/en en # solo rearma los cortes, sin volver a grabar
 node twin/scripts/capturas.mjs ../tomas-gemelo/en/capturas en
 ```
 

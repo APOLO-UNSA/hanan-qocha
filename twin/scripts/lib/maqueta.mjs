@@ -168,6 +168,16 @@ function capaCierre(t) {
   </div>`
 }
 
+/** Rótulo inferior para tomas a pantalla completa: pregunta y titular sobre una banda oscura. */
+function capaRotulo(t) {
+  return `<div class="abs" style="left:64px;bottom:60px;max-width:1180px;padding:26px 40px 30px 36px;border-radius:18px;
+    background:#1d2242f2;box-shadow:0 18px 50px -12px #000c, 0 0 0 1px #ffffff14;border-left:10px solid transparent;
+    border-image:${AWAYU} 0 0 0 10 / 0 0 0 10px repeat">
+    <p style="font:italic 700 32px/1.1 Alegreya, serif;color:#d9a23f">${t.k}</p>
+    <h1 style="margin-top:10px;font:800 56px/1.05 Alegreya, serif;letter-spacing:-.4px;color:#fbf7ee">${t.t}</h1>
+  </div>`
+}
+
 const pagina = (cuerpo) => `<!doctype html><meta charset="utf-8"><style>${BASE_CSS}</style><body>${cuerpo}</body>`
 
 /** Capas sueltas para el video. */
@@ -177,6 +187,7 @@ export const capas = {
   texto: (layout, t) => pagina(capaTexto(layout, t)),
   titulo: (t) => pagina(capaTitulo(t)),
   cierre: (t) => pagina(capaCierre(t)),
+  rotulo: (t) => pagina(capaRotulo(t)),
 }
 
 /** Maqueta fija completa (fondo + dispositivo con la captura + texto). */

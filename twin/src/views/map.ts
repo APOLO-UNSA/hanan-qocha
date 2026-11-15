@@ -76,6 +76,8 @@ export function renderMap(root: HTMLElement, d: Dataset) {
           ${ESTADOS.map((e) => `<button type="button" data-f="${e}" style="--c:${ESTADO_INFO[e].color}"><i></i>${ESTADO_INFO[e].label} <b>${porEstado[e]}</b></button>`).join('')}
         </div>
 
+        <a class="btn-finca" href="#/finca/${encodeURIComponent([...states].sort((a, b) => b.iac - a.iac)[0]?.site.cocha_id ?? '')}">${t.compareFarm} →</a>
+
         ${
           cosechas.length
             ? `<h3 class="mini-h">${t.nextHarvests}</h3>

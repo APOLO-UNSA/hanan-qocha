@@ -2,6 +2,7 @@ import './style.css'
 import { DATA_SOURCE, loadDataset, type Dataset } from './data'
 import { renderMap } from './views/map'
 import { renderCocha, type Refresh } from './views/cocha'
+import { renderFinca } from './views/finca'
 import { LANG, langUrl, t } from './i18n'
 import { VIDEO } from './ui'
 import { LOGO } from './art'
@@ -30,8 +31,10 @@ let refreshCocha: Refresh | undefined
 
 function route() {
   const m = location.hash.match(/^#\/cocha\/([^/]+)/)
+  const f = location.hash.match(/^#\/finca\/([^/]*)/)
   refreshCocha = undefined
   if (m) refreshCocha = renderCocha(view, data, decodeURIComponent(m[1]), LIVE, POLL_MS / 1000)
+  else if (f) renderFinca(view, data, decodeURIComponent(f[1]))
   else renderMap(view, data)
   window.scrollTo(0, 0)
 }
@@ -40,7 +43,7 @@ async function poll() {
   data = await loadDataset(data)
   // En la ficha se actualiza en su sitio (no reinicia sliders); el mapa se vuelve a dibujar.
   if (refreshCocha) refreshCocha(data)
-  else if (!location.hash.startsWith('#/cocha/')) route()
+  else if (!/^#\/(cocha|finca)\//.test(location.hash)) route()
 }
 
 async function start() {

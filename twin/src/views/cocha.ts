@@ -61,6 +61,7 @@ export function renderCocha(root: HTMLElement, d: Dataset, id: string, live = fa
           <h2>${esc(site.nombre)}</h2>
           <p class="meta"><span><b>▲</b> ${site.altitud_m} ${t.masl}</span><span>${site.lat.toFixed(4)}, ${site.lon.toFixed(4)}</span></p>
           <p id="estado-msg" class="estado-pill"></p>
+          <a class="hero-link" href="#/finca/${encodeURIComponent(site.cocha_id)}">${t.farmStrategies} →</a>
         </div>
         <div class="ring-wrap" id="iac-ring"></div>
       </header>

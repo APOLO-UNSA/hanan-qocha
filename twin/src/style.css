@@ -521,3 +521,85 @@ input[type='range']:focus-visible { outline: 2px solid var(--noche-2); outline-o
   .barra-ley { display: none; }
   .rosa { width: 44px; height: 44px; bottom: 22px; }
 }
+
+/* ---------- Pantalla 4: comparador de estrategias de la finca ---------- */
+.btn-finca {
+  display: flex; justify-content: space-between; align-items: center; margin: 1.1rem 0 .2rem; padding: .7rem .9rem;
+  border-radius: 10px; background: var(--noche); color: var(--papel); text-decoration: none; font-family: var(--f-titulo);
+  font-weight: 700; font-size: 1.05rem; transition: transform .15s, background .15s;
+}
+.btn-finca:hover { background: var(--noche-2); transform: translateY(-1px); }
+.hero-link { display: inline-block; margin-top: .8rem; margin-left: .6rem; color: var(--ichu); font-weight: 600; text-decoration: none; }
+.hero-link:hover { text-decoration: underline; }
+.hero-finca { grid-template-columns: 1fr auto; }
+.hero-intro { color: #f4ecdccc; max-width: 46rem; margin: .2rem 0 0; }
+.sel-cocha { display: flex; flex-direction: column; gap: .35rem; min-width: 230px; }
+.sel-cocha span { font-family: var(--f-titulo); font-style: italic; font-weight: 700; color: var(--ichu); }
+.sel-cocha select { font: inherit; padding: .45rem .6rem; border-radius: 8px; border: 0; background: var(--carta); color: var(--tinta); }
+.sel-cocha a { color: #f4ecdccc; font-size: .9rem; text-decoration: none; }
+.sel-cocha a:hover { color: var(--papel); }
+.finca-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1.2rem; margin-top: 1.6rem; align-items: start; }
+.finca-lado { display: grid; gap: 1rem; position: sticky; top: 1rem; }
+.prio { display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin-bottom: .7rem; font-size: .95rem; }
+.seg { display: inline-flex; border: 1px solid var(--linea); border-radius: 99px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: .25rem .6rem; font-size: .82rem; color: var(--tinta-suave); cursor: pointer; }
+.seg button.on { background: var(--noche); color: var(--papel); }
+.esc { display: block; margin-bottom: .8rem; }
+.esc span { display: flex; justify-content: space-between; font-size: .95rem; }
+.esc output { font-family: var(--f-mono); font-size: .85rem; }
+.esc input[type='range'] { --track: linear-gradient(to right, var(--arcilla), var(--ichu) 50%, var(--qocha)); }
+#temp { --track: linear-gradient(to right, var(--qocha), var(--ichu) 50%, var(--arcilla)) !important; }
+.nasa { display: grid; grid-template-columns: 1fr auto; gap: .45rem .8rem; margin: 0; }
+.nasa dt { font-size: .9rem; display: flex; flex-direction: column; line-height: 1.2; }
+.nasa dt small { font-family: var(--f-mono); font-size: .66rem; color: var(--tinta-suave); margin-top: .1rem; }
+.nasa dd { margin: 0; font-family: var(--f-mono); font-weight: 500; align-self: center; text-align: right; }
+.nasa-nota { font-size: .8rem; color: var(--tinta-suave); margin: .8rem 0 0; line-height: 1.35; }
+
+.estrategias { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.estr {
+  position: relative; background: var(--carta); border: 1px solid var(--linea); border-top: 5px solid var(--k);
+  border-radius: 6px 6px 12px 12px; padding: 1.1rem 1.1rem 1rem; box-shadow: 0 10px 24px -18px #221f2e55;
+  transition: transform .3s, box-shadow .3s; animation: subir .55s calc(var(--i) * 90ms) cubic-bezier(.2, .8, .2, 1) backwards;
+}
+.estr.top { box-shadow: 0 0 0 2px var(--k), 0 18px 34px -18px #221f2e88; transform: translateY(-4px); }
+.estr.no-rec { opacity: .72; }
+.estr-badge { position: absolute; top: -.85rem; left: 1rem; margin: 0; padding: .15rem .65rem; border-radius: 99px; background: var(--k); color: #fff; font-size: .78rem; font-weight: 700; }
+.estr-badge.mal { background: var(--arcilla); }
+.estr-cab { display: flex; justify-content: space-between; gap: .6rem; align-items: start; }
+.estr-cab h3 { font-size: 1.3rem; margin: 0; }
+.estr-cab p { margin: .1rem 0 0; color: var(--tinta-suave); font-size: .9rem; line-height: 1.3; }
+.estr-total { display: flex; flex-direction: column; align-items: center; min-width: 58px; padding: .3rem .4rem; border-radius: 10px; background: var(--papel); }
+.estr-total b { font-family: var(--f-titulo); font-weight: 800; font-size: 1.7rem; line-height: 1; color: var(--k); }
+.estr-total span { font-size: .7rem; color: var(--tinta-suave); }
+.rot { margin: .9rem 0 .8rem; }
+.rot-t { font-size: .8rem; color: var(--tinta-suave); }
+.rot ol { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 0; margin: .3rem 0 0; counter-reset: a; }
+.rot li { counter-increment: a; background: var(--papel); border-radius: 4px; padding: .3rem .25rem; font-size: .76rem; text-align: center; line-height: 1.15; }
+.rot li::before { content: counter(a); display: block; font-family: var(--f-mono); font-size: .62rem; color: var(--tinta-suave); }
+.rot-cocha { display: flex; align-items: center; gap: .4rem; margin-top: 3px; padding: .3rem .5rem; border-radius: 4px; background: #2c8c8f1f; font-size: .78rem; }
+.rot-cocha span { font-weight: 700; color: var(--qocha); }
+.rot-cocha i { font-style: normal; color: var(--tinta-suave); }
+.ind { margin-bottom: .6rem; }
+.ind-cab { display: flex; justify-content: space-between; font-size: .88rem; }
+.ind-cab b { font-family: var(--f-mono); font-weight: 500; }
+.ind-pista { position: relative; height: 10px; border-radius: 5px; background: var(--papel-2); margin-top: .2rem; overflow: hidden; }
+.ind-rango { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(90deg, #221f2e22 0 2px, transparent 2px 5px); }
+.ind-val { position: absolute; left: 0; top: 2px; bottom: 2px; border-radius: 4px; transition: width .35s cubic-bezier(.2, .8, .2, 1); }
+.ind-hip { position: absolute; top: 2px; bottom: 2px; border-radius: 0 4px 4px 0; background: repeating-linear-gradient(45deg, var(--qocha) 0 3px, transparent 3px 6px); opacity: .7; }
+.ind-nota { font-size: .74rem; color: var(--tinta-suave); font-style: italic; }
+.estr-ficha { margin-top: .6rem; border-top: 1px dashed var(--linea); padding-top: .5rem; }
+.estr-ficha summary { cursor: pointer; font-family: var(--f-titulo); font-weight: 700; font-size: .98rem; list-style: none; }
+.estr-ficha summary::-webkit-details-marker { display: none; }
+.estr-ficha summary::after { content: ' +'; color: var(--tinta-suave); }
+.estr-ficha[open] summary::after { content: ' –'; }
+.fs h5 { margin: .55rem 0 .15rem; font-family: var(--f-titulo); font-style: italic; font-weight: 700; font-size: .9rem; color: var(--k); }
+.fs ul { margin: 0; padding-left: 1.05rem; font-size: .86rem; line-height: 1.4; }
+.fs-vac h5, .fs-rie h5 { color: var(--arcilla); }
+.estr-ficha .fs-por h5 { display: none; }
+.aviso-decision { margin: 1.6rem 0 0; padding: .8rem 1rem; border-left: 4px solid var(--ichu); background: var(--carta); border-radius: 0 8px 8px 0; font-size: .92rem; }
+@media (max-width: 1100px) { .estrategias { grid-template-columns: 1fr; } .finca-grid { grid-template-columns: 280px minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .finca-grid { grid-template-columns: 1fr; }
+  .finca-lado { position: static; }
+  .hero-finca { grid-template-columns: 1fr; }
+}

@@ -162,7 +162,7 @@ export function renderFinca(root: HTMLElement, d: Dataset, id: string) {
           </header>
           <div class="rot"><span class="rot-t">${T.rotacion}</span>
             <ol>${T.rot[ev.id].map((c) => `<li>${c}</li>`).join('')}</ol>
-            ${ev.id === 'cushuro' ? `<div class="rot-cocha" style="--c:${info.color}"><span>${T.cochaLane}</span><i>cushuro, dic–mar · ${IAC} ${pct(st.iac)}</i></div>`.replace(' · ', ', ') : ''}
+            ${ev.id === 'cushuro' ? `<div class="rot-cocha" style="--c:${info.color}"><span>${T.cochaLane}</span><i>cushuro, ${LANG === 'en' ? 'Dec–Mar' : 'dic–mar'}, ${IAC} ${pct(st.iac)}</i></div>` : ''}
           </div>
           ${barra(T.ind.agua, ev.agua, COL[ev.id])}
           ${barra(T.ind.suelo, ev.suelo, COL[ev.id])}

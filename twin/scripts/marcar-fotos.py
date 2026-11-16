@@ -52,13 +52,39 @@ def region_agua(cam, rois):
     return roi
 
 
-def detectar(img, roi, a):
+def cambio_vs_referencia(img, ref, roi, umbral):
+    """Sustracción de fondo para una cámara fija: compara la foto con la vista de referencia de esa cámara SIN cushuro.
+    1) alinea la foto con la referencia (traslación subpíxel, ECC); 2) diferencia de color en Lab;
+    3) quita la componente de baja frecuencia (cambios de tono del agua o de la luz) y deja manchas del tamaño de una
+    colonia; 4) umbral + limpieza morfológica, solo dentro de la zona somera. Devuelve la máscara (0/255)."""
+    g1 = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    g2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    M = np.eye(2, 3, dtype=np.float32)
+    try:
+        _, M = cv2.findTransformECC(g1, g2, M, cv2.MOTION_TRANSLATION,
+                                    (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1e-4))
+    except cv2.error:
+        pass
+    alineada = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REFLECT)
+    lab = lambda x: cv2.cvtColor(cv2.GaussianBlur(x, (5, 5), 0), cv2.COLOR_BGR2LAB).astype(np.float32)
+    dd = lab(alineada) - lab(ref)
+    dd -= cv2.GaussianBlur(dd, (0, 0), 12)
+    m = ((np.sqrt((dd ** 2).sum(2)) > umbral) & (roi > 0)).astype(np.uint8) * 255
+    m = cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    return cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+
+
+def detectar(img, roi, a, cambio=None):
+    """Busca colonias por forma (Hough) y color. Si hay máscara de `cambio` (sustracción de fondo), solo se aceptan
+    círculos que caen sobre lo que cambió respecto a la referencia, y la cobertura sale de esa máscara."""
     gris = cv2.createCLAHE(2.0, (8, 8)).apply(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
     suave = cv2.GaussianBlur(gris, (5, 5), 1.2)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mag = cv2.magnitude(cv2.Sobel(suave, cv2.CV_32F, 1, 0), cv2.Sobel(suave, cv2.CV_32F, 0, 1))
     cand = []
     for y0, y1, rmin, rmax in BANDAS:
+        # --escala: las fotos con colonias de tamaño real (0,5-2,5 cm) las muestran más chicas que las primeras de la demo
+        rmin, rmax = max(2, round(rmin * a.escala)), max(4, round(rmax * a.escala))
         ya, yb = int(y0 * H), int(y1 * H)
         c = cv2.HoughCircles(suave[ya:yb], cv2.HOUGH_GRADIENT, dp=1.2, minDist=rmin * 1.6, param1=70,
                              param2=max(10, rmin * 1.4), minRadius=rmin, maxRadius=rmax)
@@ -71,6 +97,13 @@ def detectar(img, roi, a):
                 continue
             m = np.zeros((H, W), np.uint8)
             cv2.circle(m, (xi, yi), max(2, int(r * .8)), 255, -1)
+            if cambio is not None:  # con referencia: basta con que el círculo caiga sobre lo que cambió
+                if cv2.mean(cambio, mask=m)[0] > 0.5 * 255:
+                    ang = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+                    px = np.clip((x + r * np.cos(ang)).astype(int), 0, W - 1)
+                    py = np.clip((y + r * np.sin(ang)).astype(int), 0, H - 1)
+                    cand.append((float(x), float(y), float(r), max(.6, float((mag[py, px] > 45).mean()))))
+                continue
             hh, ss, vv = cv2.mean(hsv, mask=m)[:3]
             if not (a.h[0] <= hh <= a.h[1] and ss >= a.s and a.v[0] <= vv <= a.v[1]):
                 continue
@@ -97,13 +130,15 @@ def detectar(img, roi, a):
     for c in cand:  # sin duplicados
         if all(math.hypot(c[0] - d[0], c[1] - d[1]) > .7 * max(c[2], d[2]) for d in colonias):
             colonias.append(c)
+    if cambio is not None:
+        return (cambio > 0).astype(np.uint8), colonias
     mascara = np.zeros((H, W), np.uint8)
     for x, y, r, _ in colonias:
         cv2.circle(mascara, (int(x), int(y)), int(r), 1, -1)
     return mascara & (roi > 0), colonias
 
 
-def capa(img, mascara, colonias, roi, v, id_, n, total, etiqueta):
+def capa(img, mascara, colonias, roi, v, id_, n, total, etiqueta, titulo="DETECCION HOUGH + COLOR"):
     out = img.copy()
     tinte = out.copy()
     tinte[mascara > 0] = LILA
@@ -133,7 +168,7 @@ def capa(img, mascara, colonias, roi, v, id_, n, total, etiqueta):
     panel = out.copy()
     cv2.rectangle(panel, (px, py), (W - 14, py + 76), NOCHE, -1)
     out = cv2.addWeighted(panel, .82, out, .18, 0)
-    cv2.putText(out, "DETECCION HOUGH + COLOR", (px + 12, py + 22), fuente, .45, LILA, 1, cv2.LINE_AA)
+    cv2.putText(out, titulo, (px + 12, py + 22), fuente, .45, LILA, 1, cv2.LINE_AA)
     # La cobertura medida se imprime en consola; en la foto no, para no contradecir el valor de vision.json que muestra la app
     for i, (a_, b_) in enumerate([("colonias detectadas", f"{len(colonias)}"), ("biomasa est.", f"{v['biomasa_kg']:.1f} kg")]):
         yy = py + 46 + 20 * i
@@ -164,6 +199,11 @@ def main():
     ap.add_argument("--v", type=int, nargs=2, default=(30, 215), help="brillo mínimo y máximo")
     ap.add_argument("--min-soporte", type=float, default=.55, help="fracción mínima del contorno con borde nítido")
     ap.add_argument("--etiqueta", default="", help="aviso opcional en la franja inferior de la foto")
+    ap.add_argument("--escala", type=float, default=1.0,
+                    help="factor sobre los radios esperados de las colonias (≈0,4 para colonias de tamaño real)")
+    ap.add_argument("--referencias", default=str(RAIZ / "fotos-fuente" / "referencia"),
+                    help="carpeta con la vista de cada cámara SIN cushuro (QC-01.jpg, ...): activa la sustracción de fondo")
+    ap.add_argument("--umbral-cambio", type=float, default=12, help="diferencia de color mínima respecto a la referencia")
     ap.add_argument("--depurar", action="store_true", help="dibuja también el contorno del agua usado")
     a = ap.parse_args()
 
@@ -177,19 +217,25 @@ def main():
     hechas = 0
     for id_, serie in por_cocha.items():
         roi = region_agua(id_, rois)
+        ref_p = next((p for p in (Path(a.referencias) / f"{id_}{e}" for e in (".jpg", ".jpeg", ".png")) if p.exists()), None)
+        ref = recortar_4_3(cv2.imread(str(ref_p))) if ref_p else None
         for n, v in enumerate(serie, 1):
             nombre = Path(v["foto"]).name
             fuente = next((p for p in (entrada / Path(nombre).with_suffix(e).name for e in (".jpg", ".jpeg", ".png", ".webp")) if p.exists()), None)
             if not fuente:
                 continue
             img = recortar_4_3(cv2.imread(str(fuente)))
-            mascara, colonias = detectar(img, roi, a)
-            out, cob = capa(img, mascara, colonias, roi, v, id_, n, len(serie), a.etiqueta)
+            cambio = cambio_vs_referencia(img, ref, roi, a.umbral_cambio) if ref is not None else None
+            mascara, colonias = detectar(img, roi, a, cambio)
+            out, cob = capa(img, mascara, colonias, roi, v, id_, n, len(serie), a.etiqueta,
+                            "CAMBIO VS REFERENCIA + HOUGH" if cambio is not None else "DETECCION HOUGH + COLOR")
             if a.depurar:
                 cnts, _ = cv2.findContours(roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 cv2.drawContours(out, cnts, -1, (255, 200, 0), 1)
             cv2.imwrite(str(salida / nombre), out, [cv2.IMWRITE_JPEG_QUALITY, 86])
-            print(f"{nombre}: {len(colonias)} colonias, cobertura del agua {cob:.1f} % (vision.json dice {v['cobertura_pct']} %)")
+            metodo = "sustracción de fondo" if ref is not None else "Hough + color"
+            print(f"{nombre}: {len(colonias)} colonias, cobertura de la zona somera {cob:.1f} % "
+                  f"(vision.json dice {v['cobertura_pct']} %) [{metodo}]")
             hechas += 1
     print(f"{hechas} foto(s) marcadas" if hechas else f"No hay fotos de entrada en {entrada} (nombres esperados: QC-01-01.jpg, ...)")
 

@@ -204,6 +204,7 @@ def main():
     ap.add_argument("--referencias", default=str(RAIZ / "fotos-fuente" / "referencia"),
                     help="carpeta con la vista de cada cámara SIN cushuro (QC-01.jpg, ...): activa la sustracción de fondo")
     ap.add_argument("--umbral-cambio", type=float, default=12, help="diferencia de color mínima respecto a la referencia")
+    ap.add_argument("--min-colonias", type=int, default=5, help="menos detecciones que esto se consideran ruido")
     ap.add_argument("--depurar", action="store_true", help="dibuja también el contorno del agua usado")
     a = ap.parse_args()
 
@@ -227,6 +228,8 @@ def main():
             img = recortar_4_3(cv2.imread(str(fuente)))
             cambio = cambio_vs_referencia(img, ref, roi, a.umbral_cambio) if ref is not None else None
             mascara, colonias = detectar(img, roi, a, cambio)
+            if len(colonias) < a.min_colonias:  # unas pocas detecciones sueltas son ruido (reflejos, piedras): no hay cushuro
+                mascara, colonias = np.zeros_like(mascara), []
             out, cob = capa(img, mascara, colonias, roi, v, id_, n, len(serie), a.etiqueta,
                             "CAMBIO VS REFERENCIA + HOUGH" if cambio is not None else "DETECCION HOUGH + COLOR")
             if a.depurar:

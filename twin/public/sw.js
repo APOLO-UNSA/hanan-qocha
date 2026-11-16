@@ -2,9 +2,10 @@
 // Escrito a mano (sin dependencias). Estrategias:
 //   - Página:            red primero; sin red, la última versión guardada.
 //   - Datos (*.json):    red primero; sin red, los últimos datos guardados.
+//   - Fotos de cámaras:  red primero (demo/fotos, data/fotos: se reemplazan con el mismo nombre).
 //   - JS/CSS/imágenes:   caché primero (los archivos de Vite llevan hash, no cambian).
 //   - Mapa (Esri):       caché primero, con un máximo de teselas guardadas.
-const VERSION = 'v2'
+const VERSION = 'v3' // subir al cambiar la estrategia: borra los cachés anteriores
 const APP = `qt-app-${VERSION}`
 const DATA = `qt-data-${VERSION}`
 const TILES = `qt-tiles-${VERSION}`
@@ -74,7 +75,7 @@ self.addEventListener('fetch', (e) => {
 
   if (req.mode === 'navigate') {
     e.respondWith(networkFirst(req, APP, './'))
-  } else if (url.pathname.endsWith('.json')) {
+  } else if (url.pathname.endsWith('.json') || url.pathname.includes('/fotos/')) {
     e.respondWith(networkFirst(req, DATA))
   } else {
     e.respondWith(cacheFirst(req, APP))

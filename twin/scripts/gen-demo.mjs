@@ -27,20 +27,21 @@ const DAY = 864e5
 const iso = (t) => new Date(t - 5 * 3600e3).toISOString().replace('Z', '-05:00').replace(/\.\d{3}/, '')
 
 // Cochas ficticias repartidas por la zona de Salinas y Aguada Blanca.
-// perfil: condiciones del agua; fotos: nº de fotos semanales (0 = sin cámara); fase: avance del crecimiento
+// perfil: condiciones del agua; fotos: nº de fotos semanales (0 = sin cámara); fase: avance del crecimiento;
+// inspeccion: cobertura (%) de una sola foto de inspección del 14/11 en cochas sin cámara (elegida para no cambiar su estado)
 const COCHAS = [
   { n: 'Cocha 01 (norte)', lat: -15.781, lon: -71.334, alt: 4385, sat: 0.84, perfil: 'buena', fotos: 8, fase: 'lista' },
   { n: 'Cocha 02 (norte)', lat: -15.803, lon: -71.298, alt: 4402, sat: 0.78, perfil: 'buena', fotos: 6, fase: 'creciendo' },
   { n: 'Cocha 03 (norte)', lat: -15.842, lon: -71.362, alt: 4350, sat: 0.71, perfil: 'calida', fotos: 5, fase: 'lenta' },
   { n: 'Cocha 04 (centro)', lat: -15.921, lon: -71.215, alt: 4420, sat: 0.66, perfil: 'buena', fotos: 1, fase: 'sembrada' },
   { n: 'Cocha 05 (centro)', lat: -15.958, lon: -71.268, alt: 4310, sat: 0.58, perfil: 'media', fotos: 4, fase: 'creciendo' },
-  { n: 'Cocha 06 (centro)', lat: -16.012, lon: -71.181, alt: 4280, sat: 0.74, perfil: 'buena', fotos: 0 },
-  { n: 'Cocha 07 (centro)', lat: -16.054, lon: -71.322, alt: 4190, sat: 0.47, perfil: 'salina', fotos: 0 },
-  { n: 'Cocha 08 (sur)', lat: -16.118, lon: -71.243, alt: 4150, sat: 0.52, perfil: 'media', fotos: 0 },
-  { n: 'Cocha 09 (sur)', lat: -16.196, lon: -71.395, alt: 4300, sat: 0.62, perfil: 'buena', fotos: 0 },
-  { n: 'Cocha 10 (sur)', lat: -16.261, lon: -71.152, alt: 3980, sat: 0.28, perfil: 'salina', fotos: 0 },
-  { n: 'Cocha 11 (sur)', lat: -16.318, lon: -71.288, alt: 4060, sat: 0.36, perfil: 'calida', fotos: 0 },
-  { n: 'Cocha 12 (norte)', lat: -15.744, lon: -71.251, alt: 4460, sat: 0.69, perfil: 'media', fotos: 0 },
+  { n: 'Cocha 06 (centro)', lat: -16.012, lon: -71.181, alt: 4280, sat: 0.74, perfil: 'buena', fotos: 0, inspeccion: 20 },
+  { n: 'Cocha 07 (centro)', lat: -16.054, lon: -71.322, alt: 4190, sat: 0.47, perfil: 'salina', fotos: 0, inspeccion: 0 },
+  { n: 'Cocha 08 (sur)', lat: -16.118, lon: -71.243, alt: 4150, sat: 0.52, perfil: 'media', fotos: 0, inspeccion: 5 },
+  { n: 'Cocha 09 (sur)', lat: -16.196, lon: -71.395, alt: 4300, sat: 0.62, perfil: 'buena', fotos: 0, inspeccion: 32 },
+  { n: 'Cocha 10 (sur)', lat: -16.261, lon: -71.152, alt: 3980, sat: 0.28, perfil: 'salina', fotos: 0, inspeccion: 0 },
+  { n: 'Cocha 11 (sur)', lat: -16.318, lon: -71.288, alt: 4060, sat: 0.36, perfil: 'calida', fotos: 0, inspeccion: 3 },
+  { n: 'Cocha 12 (norte)', lat: -15.744, lon: -71.251, alt: 4460, sat: 0.69, perfil: 'media', fotos: 0, inspeccion: 42 },
 ]
 
 // Lecturas del sensor: las genera el simulador físico de Qocha Ñawi de Paolo (device/simulacion/simulador.py,
@@ -75,6 +76,10 @@ COCHAS.forEach((c, i) => {
       const foto = `demo/fotos/${id}-${String(n + 1).padStart(2, '0')}.jpg`
       vision.push({ cocha_id: id, timestamp: iso(t), foto, cobertura_pct: round(cob), biomasa_kg: round(obs) })
     }
+  }
+  // Foto de inspección (sin números aleatorios: no altera el resto de la demo). Biomasa con la capacidad por defecto, 40 kg.
+  if (c.inspeccion != null) {
+    vision.push({ cocha_id: id, timestamp: iso(NOW), foto: `demo/fotos/${id}-01.jpg`, cobertura_pct: c.inspeccion, biomasa_kg: round((c.inspeccion / 100) * 40) })
   }
 })
 

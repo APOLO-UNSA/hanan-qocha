@@ -22,5 +22,12 @@
   {"cocha_id":"QC-05","timestamp":"2026-10-24T10:00:00-05:00","foto":"demo/fotos/QC-05-01.jpg","cobertura_pct":8.3,"biomasa_kg":3.3},
   {"cocha_id":"QC-05","timestamp":"2026-10-31T10:00:00-05:00","foto":"demo/fotos/QC-05-02.jpg","cobertura_pct":13.6,"biomasa_kg":5.4},
   {"cocha_id":"QC-05","timestamp":"2026-11-07T10:00:00-05:00","foto":"demo/fotos/QC-05-03.jpg","cobertura_pct":23.7,"biomasa_kg":9.4},
-  {"cocha_id":"QC-05","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-05-04.jpg","cobertura_pct":35.9,"biomasa_kg":14.3}
+  {"cocha_id":"QC-05","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-05-04.jpg","cobertura_pct":35.9,"biomasa_kg":14.3},
+  {"cocha_id":"QC-06","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-06-01.jpg","cobertura_pct":20,"biomasa_kg":8},
+  {"cocha_id":"QC-07","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-07-01.jpg","cobertura_pct":0,"biomasa_kg":0},
+  {"cocha_id":"QC-08","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-08-01.jpg","cobertura_pct":5,"biomasa_kg":2},
+  {"cocha_id":"QC-09","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-09-01.jpg","cobertura_pct":32,"biomasa_kg":12.8},
+  {"cocha_id":"QC-10","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-10-01.jpg","cobertura_pct":0,"biomasa_kg":0},
+  {"cocha_id":"QC-11","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-11-01.jpg","cobertura_pct":3,"biomasa_kg":1.2},
+  {"cocha_id":"QC-12","timestamp":"2026-11-14T10:00:00-05:00","foto":"demo/fotos/QC-12-01.jpg","cobertura_pct":42,"biomasa_kg":16.8}
 ]
